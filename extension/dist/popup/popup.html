@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Driftr Capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="header">
+        <div class="title">Driftr Capture</div>
+        <label class="toggle">
+          <input id="enabledToggle" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+      </header>
+
+      <section class="stats">
+        <div class="stat">
+          <div class="label">Captured today</div>
+          <div id="todaysCount" class="value">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">This session</div>
+          <div id="sessionCount" class="value">0</div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button id="dashboardBtn" class="btn primary" type="button">View Dashboard</button>
+        <button id="syncBtn" class="btn" type="button">Sync Now</button>
+      </section>
+
+      <section class="options">
+        <label class="checkbox">
+          <input id="confirmToggle" type="checkbox" />
+          <span>Ask before saving</span>
+        </label>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Last captured</div>
+        <div id="lastCaptured" class="muted">None yet.</div>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Queued (unsynced)</div>
+        <div id="queueList" class="queueList muted">No queued items.</div>
+      </section>
+
+      <details class="settings">
+        <summary>Settings</summary>
+        <div class="settingsBody">
+          <div class="muted" style="margin-bottom:10px">
+            Sync target: Firebase Firestore collection <strong>applications</strong>
+          </div>
+          <label class="field">
+            <span>Dashboard URL</span>
+            <input id="dashboardUrl" type="text" placeholder="https://your-dashboard.example" />
+          </label>
+          <button id="saveSettingsBtn" class="btn primary" type="button">Save Settings</button>
+          <div id="settingsStatus" class="status muted"></div>
+        </div>
+      </details>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

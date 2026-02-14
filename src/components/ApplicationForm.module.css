@@ -1,0 +1,136 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  z-index: 50;
+}
+
+.modal {
+  width: 100%;
+  max-width: 780px;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 26, 47, 0.96),
+    rgba(16, 26, 47, 0.86)
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-weight: 780;
+}
+
+.iconButton {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(15, 24, 48, 0.6);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.form {
+  padding: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldWide {
+  display: grid;
+  gap: 6px;
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.optional {
+  color: rgba(169, 183, 209, 0.85);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 24, 48, 0.6);
+  color: var(--text);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(106, 163, 255, 0.6);
+  box-shadow: 0 0 0 4px rgba(106, 163, 255, 0.12);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.secondaryButton,
+.primaryButton {
+  appearance: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(15, 24, 48, 0.55);
+  color: var(--text);
+}
+
+.primaryButton {
+  border-color: rgba(106, 163, 255, 0.35);
+  background: rgba(106, 163, 255, 0.14);
+  font-weight: 650;
+}
+
+.primaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
