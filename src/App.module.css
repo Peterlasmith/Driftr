@@ -25,10 +25,25 @@
   gap: 6px;
 }
 
-.appTitle {
-  font-size: 22px;
-  font-weight: 750;
-  letter-spacing: 0.2px;
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 4px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.logoLink:focus-visible {
+  outline: 2px solid rgba(106, 163, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.logoImage {
+  height: 46px;
+  width: auto;
+  max-width: min(240px, 70vw);
+  display: block;
 }
 
 .subtitle {
@@ -104,8 +119,12 @@
     flex-direction: column;
   }
 
+  .logoImage {
+    height: 42px;
+    max-width: 80vw;
+  }
+
   .primaryButton {
     width: 100%;
   }
 }
-

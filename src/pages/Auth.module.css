@@ -20,6 +20,19 @@
   border-bottom: 1px solid var(--border);
 }
 
+.brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.brandLogo {
+  height: 84px;
+  width: auto;
+  max-width: min(280px, 80vw);
+  display: block;
+}
+
 .title {
   font-size: 20px;
   font-weight: 760;
@@ -124,3 +137,9 @@
   font-size: 13px;
 }
 
+@media (max-width: 420px) {
+  .brandLogo {
+    height: 72px;
+    max-width: 86vw;
+  }
+}

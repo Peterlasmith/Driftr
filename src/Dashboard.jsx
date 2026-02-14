@@ -9,8 +9,10 @@ import {
   updateApplication,
   updateApplicationStatus
 } from "./services/applications";
+import { Link } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
+import logo from "./assets/logo.svg";
 
 const STATUS_OPTIONS = ["Applied", "Screening", "Interview", "Offer", "Rejected"];
 
@@ -137,7 +139,9 @@ export default function Dashboard() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.appTitle}>Job Tracker</div>
+          <Link to="/" className={styles.logoLink} aria-label="Driftr dashboard">
+            <img className={styles.logoImage} src={logo} alt="Driftr" />
+          </Link>
           <div className={styles.subtitle}>Signed in as {user?.email || "Unknown"}</div>
         </div>
         <div className={styles.headerRight}>
@@ -190,4 +194,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

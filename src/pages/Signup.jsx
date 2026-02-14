@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import styles from "./Auth.module.css";
+import logo from "../assets/logo.svg";
 
 function friendlyAuthError(err) {
   const code = err?.code || "";
@@ -61,6 +62,9 @@ export default function Signup() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
+          <div className={styles.brand}>
+            <img className={styles.brandLogo} src={logo} alt="Driftr" />
+          </div>
           <div className={styles.title}>Sign up</div>
           <div className={styles.subtitle}>Create an account for Driftr</div>
         </div>
