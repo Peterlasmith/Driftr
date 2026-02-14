@@ -1,0 +1,44 @@
+:root {
+  /* Brand (Wix) */
+  --brand-bg: #a0493e; /* rust / burnt orange */
+  --brand-surface: #fff8e8; /* cream / beige */
+  --brand-accent: #e8754a; /* bright orange */
+  --brand-link: #d89c8c; /* peachy coral */
+  --brand-text-on-dark: #fff8e8; /* cream */
+  --brand-text-on-light: #000000; /* black */
+
+  /* App semantic tokens */
+  --bg: var(--brand-bg);
+  --panel: var(--brand-surface);
+  --panel-2: #fff1d2;
+  --text: var(--brand-text-on-dark);
+  --text-on-panel: var(--brand-text-on-light);
+  --muted: rgba(255, 248, 232, 0.84);
+  --muted-on-panel: rgba(0, 0, 0, 0.64);
+  --border: rgba(160, 73, 62, 0.22);
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
+  --radius: 14px;
+
+  --accent: var(--brand-accent);
+  --accent-hover: #d9653e;
+  --accent-press: #c95833;
+  --accent-contrast: #1a0b08;
+
+  --link: var(--brand-link);
+  --link-hover: var(--brand-accent);
+  --link-visited: #c98575;
+
+  --input-bg: #fffdf7;
+  --input-border: rgba(160, 73, 62, 0.32);
+
+  --focus-ring: rgba(232, 117, 74, 0.65);
+  --focus-shadow: 0 0 0 4px rgba(232, 117, 74, 0.18);
+
+  --overlay: rgba(26, 12, 10, 0.55);
+
+  --danger: #b42318;
+  --danger-bg: rgba(180, 35, 24, 0.12);
+  --success: #067647;
+  --warning: #b54708;
+}
+

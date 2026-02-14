@@ -1,17 +1,4 @@
-:root {
-  --bg: #0b1220;
-  --panel: #101a2f;
-  --panel-2: #0f1830;
-  --text: #e8eefc;
-  --muted: #a9b7d1;
-  --border: rgba(232, 238, 252, 0.12);
-  --accent: #6aa3ff;
-  --danger: #ff6a7a;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-  --radius: 14px;
-}
+@import "./styles/theme.css";
 
 * {
   box-sizing: border-box;
@@ -27,22 +14,33 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   background: radial-gradient(
-      900px 500px at 15% 10%,
-      rgba(106, 163, 255, 0.18),
-      transparent 60%
+      900px 520px at 18% 12%,
+      rgba(232, 117, 74, 0.22),
+      transparent 62%
     ),
-    radial-gradient(
-      900px 500px at 85% 0%,
-      rgba(34, 197, 94, 0.14),
-      transparent 65%
-    ),
+    radial-gradient(780px 520px at 86% 0%, rgba(216, 156, 140, 0.18), transparent 66%),
     var(--bg);
   color: var(--text);
 }
 
 a {
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+a:visited {
+  color: var(--link-visited);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 
 button,
@@ -51,4 +49,3 @@ select,
 textarea {
   font: inherit;
 }
-

@@ -5,16 +5,17 @@
 }
 
 .card {
-  background: rgba(16, 26, 47, 0.65);
+  background: rgba(255, 248, 232, 0.92);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 14px 14px 12px;
   min-height: 90px;
+  color: var(--text-on-panel);
 }
 
 .label {
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 12px;
 }
 
@@ -27,7 +28,7 @@
 
 .sub {
   margin-top: 6px;
-  color: rgba(169, 183, 209, 0.9);
+  color: var(--muted-on-panel);
   font-size: 12px;
 }
 
@@ -42,4 +43,3 @@
     grid-template-columns: 1fr;
   }
 }
-

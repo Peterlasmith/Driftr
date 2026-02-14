@@ -10,14 +10,11 @@
   align-items: flex-end;
   gap: 16px;
   padding: 16px 14px 18px;
-  background: linear-gradient(
-    180deg,
-    rgba(16, 26, 47, 0.84),
-    rgba(16, 26, 47, 0.72)
-  );
+  background: linear-gradient(180deg, rgba(255, 248, 232, 0.92), rgba(255, 248, 232, 0.86));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  color: var(--text-on-panel);
 }
 
 .headerLeft {
@@ -35,7 +32,7 @@
 }
 
 .logoLink:focus-visible {
-  outline: 2px solid rgba(106, 163, 255, 0.7);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -47,7 +44,7 @@
 }
 
 .subtitle {
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 13px;
 }
 
@@ -59,9 +56,9 @@
 
 .primaryButton {
   appearance: none;
-  border: 1px solid rgba(106, 163, 255, 0.35);
-  background: rgba(106, 163, 255, 0.14);
-  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--accent);
+  color: var(--accent-contrast);
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -69,7 +66,16 @@
 }
 
 .primaryButton:hover {
-  background: rgba(106, 163, 255, 0.2);
+  background: var(--accent-hover);
+}
+
+.primaryButton:active {
+  background: var(--accent-press);
+}
+
+.primaryButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .main {
@@ -79,11 +85,12 @@
 }
 
 .panel {
-  background: rgba(16, 26, 47, 0.7);
+  background: rgba(255, 248, 232, 0.92);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  color: var(--text-on-panel);
 }
 
 .panelHeader {
@@ -100,17 +107,17 @@
 }
 
 .panelMeta {
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 12px;
 }
 
 .errorBanner {
   margin: 12px 14px 0;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 106, 122, 0.35);
-  background: rgba(255, 106, 122, 0.12);
+  border: 1px solid rgba(180, 35, 24, 0.3);
+  background: var(--danger-bg);
   border-radius: 12px;
-  color: var(--text);
+  color: var(--text-on-panel);
 }
 
 @media (max-width: 640px) {

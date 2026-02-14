@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay);
   display: grid;
   place-items: center;
   padding: 18px;
@@ -11,15 +11,12 @@
 .modal {
   width: 100%;
   max-width: 780px;
-  background: linear-gradient(
-    180deg,
-    rgba(16, 26, 47, 0.96),
-    rgba(16, 26, 47, 0.86)
-  );
+  background: linear-gradient(180deg, rgba(255, 248, 232, 0.98), rgba(255, 248, 232, 0.92));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  color: var(--text-on-panel);
 }
 
 .header {
@@ -36,13 +33,22 @@
 
 .iconButton {
   appearance: none;
-  border: 1px solid var(--border);
-  background: rgba(15, 24, 48, 0.6);
-  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
   width: 34px;
   height: 34px;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.iconButton:hover {
+  background: rgba(160, 73, 62, 0.12);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .form {
@@ -68,20 +74,20 @@
 
 .label {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-on-panel);
 }
 
 .optional {
-  color: rgba(169, 183, 209, 0.85);
+  color: var(--muted-on-panel);
 }
 
 .input,
 .textarea {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(15, 24, 48, 0.6);
-  color: var(--text);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-on-panel);
   padding: 10px 12px;
   outline: none;
 }
@@ -93,8 +99,8 @@
 
 .input:focus,
 .textarea:focus {
-  border-color: rgba(106, 163, 255, 0.6);
-  box-shadow: 0 0 0 4px rgba(106, 163, 255, 0.12);
+  border-color: rgba(232, 117, 74, 0.75);
+  box-shadow: var(--focus-shadow);
 }
 
 .footer {
@@ -112,15 +118,34 @@
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
-  border: 1px solid var(--border);
-  background: rgba(15, 24, 48, 0.55);
-  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
 }
 
 .primaryButton {
-  border-color: rgba(106, 163, 255, 0.35);
-  background: rgba(106, 163, 255, 0.14);
+  border-color: rgba(0, 0, 0, 0.12);
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-weight: 650;
+}
+
+.primaryButton:hover {
+  background: var(--accent-hover);
+}
+
+.primaryButton:active {
+  background: var(--accent-press);
+}
+
+.secondaryButton:hover {
+  background: rgba(160, 73, 62, 0.12);
+}
+
+.secondaryButton:focus-visible,
+.primaryButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .primaryButton:disabled {
@@ -133,4 +158,3 @@
     grid-template-columns: 1fr;
   }
 }
-

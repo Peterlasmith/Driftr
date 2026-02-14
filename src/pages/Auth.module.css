@@ -8,11 +8,12 @@
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(16, 26, 47, 0.72);
+  background: rgba(255, 248, 232, 0.94);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  color: var(--text-on-panel);
 }
 
 .header {
@@ -41,7 +42,7 @@
 
 .subtitle {
   margin-top: 6px;
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 13px;
 }
 
@@ -58,28 +59,29 @@
 
 .label {
   font-size: 13px;
-  color: var(--muted);
+  color: var(--muted-on-panel);
 }
 
 .input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(11, 18, 32, 0.55);
-  color: var(--text);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-on-panel);
   outline: none;
 }
 
 .input:focus {
-  border-color: rgba(106, 163, 255, 0.5);
+  border-color: rgba(232, 117, 74, 0.75);
+  box-shadow: var(--focus-shadow);
 }
 
 .primaryButton {
   appearance: none;
-  border: 1px solid rgba(106, 163, 255, 0.35);
-  background: rgba(106, 163, 255, 0.14);
-  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--accent);
+  color: var(--accent-contrast);
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -87,14 +89,30 @@
 }
 
 .primaryButton:hover {
-  background: rgba(106, 163, 255, 0.2);
+  background: var(--accent-hover);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.primaryButton:active {
+  background: var(--accent-press);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .secondaryButton {
   appearance: none;
-  border: 1px solid var(--border);
-  background: rgba(232, 238, 252, 0.06);
-  color: var(--text);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
   padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -102,7 +120,7 @@
 }
 
 .secondaryButton:hover {
-  background: rgba(232, 238, 252, 0.09);
+  background: rgba(160, 73, 62, 0.12);
 }
 
 .divider {
@@ -110,7 +128,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 10px;
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 12px;
   margin: 4px 0;
 }
@@ -124,16 +142,16 @@
 
 .errorBanner {
   padding: 10px 12px;
-  border: 1px solid rgba(255, 106, 122, 0.35);
-  background: rgba(255, 106, 122, 0.12);
+  border: 1px solid rgba(180, 35, 24, 0.3);
+  background: var(--danger-bg);
   border-radius: 12px;
-  color: var(--text);
+  color: var(--text-on-panel);
 }
 
 .footer {
   padding: 14px 16px 16px;
   border-top: 1px solid var(--border);
-  color: var(--muted);
+  color: var(--muted-on-panel);
   font-size: 13px;
 }
 
