@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./ApplicationForm.module.css";
 import { parseJobUrl } from "../services/jobUrlParser";
+import ResumeUploadModal from "./ResumeUploadModal";
+import { computeResumePerformance } from "../services/resumePerformance";
 
 const EMPTY = {
   id: null,
@@ -10,6 +12,7 @@ const EMPTY = {
   jobUrl: "",
   dateApplied: "",
   status: "Applied",
+  resumeVersionId: "",
   resumeVersion: "",
   notes: ""
 };
@@ -29,6 +32,8 @@ export default function ApplicationForm({
   saving,
   initialValue,
   statusOptions,
+  resumes,
+  applications,
   onClose,
   onSubmit
 }) {
@@ -46,6 +51,35 @@ export default function ApplicationForm({
   const [value, setValue] = useState(initial);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState("");
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  const resumePerf = useMemo(() => {
+    return computeResumePerformance(resumes || [], applications || []);
+  }, [resumes, applications]);
+
+  const resumeOptions = useMemo(() => {
+    const rows = (resumes || []).map((r) => {
+      const perf = resumePerf.byId.get(r.id);
+      const rate = perf?.responseRate;
+      const appsCount = perf?.applications ?? 0;
+      const labelRate = rate == null ? "Not enough data" : `${rate}% response rate`;
+      const isBest = resumePerf.bestResumeId && resumePerf.bestResumeId === r.id;
+      const star = isBest ? " ⭐" : "";
+      return {
+        id: r.id,
+        sortRate: rate == null ? -1 : rate,
+        sortDate: r.uploadDate ? new Date(r.uploadDate).getTime() : 0,
+        label: `${r.versionName || "Untitled resume"} (${labelRate})${star}`,
+        appsCount
+      };
+    });
+    rows.sort((a, b) => {
+      if (a.sortRate !== b.sortRate) return b.sortRate - a.sortRate;
+      if (a.appsCount !== b.appsCount) return b.appsCount - a.appsCount;
+      return b.sortDate - a.sortDate;
+    });
+    return rows;
+  }, [resumes, resumePerf]);
 
   useEffect(() => {
     setValue(initial);
@@ -98,7 +132,8 @@ export default function ApplicationForm({
       jobUrl: value.jobUrl.trim(),
       dateApplied: value.dateApplied || null,
       status: value.status,
-      resumeVersion: value.resumeVersion.trim() || null,
+      resumeVersionId: value.resumeVersionId ? value.resumeVersionId : null,
+      resumeVersion: value.resumeVersionId ? null : value.resumeVersion.trim() || null,
       notes: value.notes.trim() || null
     };
     await onSubmit(payload);
@@ -205,14 +240,57 @@ export default function ApplicationForm({
 
             <label className={styles.fieldWide}>
               <div className={styles.label}>
-                Resume Version <span className={styles.optional}>(optional)</span>
+                Resume <span className={styles.optional}>(optional)</span>
               </div>
-              <input
-                className={styles.input}
-                value={value.resumeVersion}
-                onChange={(e) => updateField("resumeVersion", e.target.value)}
-                placeholder="v3 / SWE-2026-02 / etc."
-              />
+              {resumeOptions.length === 0 ? (
+                <div className={styles.urlRow}>
+                  <input
+                    className={styles.input}
+                    value="Upload a resume first to track performance"
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => setUploadOpen(true)}
+                  >
+                    Upload
+                  </button>
+                </div>
+              ) : (
+                <select
+                  className={styles.input}
+                  value={value.resumeVersionId || ""}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (next === "__upload__") {
+                      setUploadOpen(true);
+                      return;
+                    }
+                    updateField("resumeVersionId", next);
+                    if (next) updateField("resumeVersion", "");
+                  }}
+                >
+                  <option value="">(No resume selected)</option>
+                  {value.resumeVersion && !value.resumeVersionId ? (
+                    <option value="" disabled>
+                      Legacy: {value.resumeVersion}
+                    </option>
+                  ) : null}
+                  {resumeOptions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.label}
+                    </option>
+                  ))}
+                  <option value="__upload__">+ Upload New Resume</option>
+                </select>
+              )}
+
+              {!value.resumeVersionId && value.resumeVersion ? (
+                <div className={styles.errorText}>
+                  This is a legacy text label. Upload a resume file to track performance.
+                </div>
+              ) : null}
             </label>
 
             <label className={styles.fieldWide}>
@@ -239,6 +317,16 @@ export default function ApplicationForm({
           </div>
         </form>
       </div>
+
+      <ResumeUploadModal
+        open={uploadOpen}
+        resumes={resumes}
+        onClose={() => setUploadOpen(false)}
+        onUploaded={(resumeId) => {
+          updateField("resumeVersionId", resumeId);
+          updateField("resumeVersion", "");
+        }}
+      />
     </div>
   );
 }

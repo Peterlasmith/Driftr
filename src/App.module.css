@@ -54,6 +54,40 @@
   gap: 10px;
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text-on-panel);
+  border: 1px solid transparent;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.navLinkActive {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .primaryButton {
   appearance: none;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -124,6 +158,17 @@
   .header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .navLink {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 
   .logoImage {

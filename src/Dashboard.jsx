@@ -9,10 +9,10 @@ import {
   updateApplication,
   updateApplicationStatus
 } from "./services/applications";
-import { Link } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
-import logo from "./assets/logo.svg";
+import AppHeader from "./components/AppHeader";
+import { subscribeToResumes } from "./services/resumes";
 
 const STATUS_OPTIONS = ["Applied", "Screening", "Interview", "Offer", "Rejected"];
 
@@ -48,6 +48,7 @@ function calcStats(applications) {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [applications, setApplications] = useState([]);
+  const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -73,6 +74,16 @@ export default function Dashboard() {
       }
     );
 
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsubscribe = subscribeToResumes(
+      user.uid,
+      (rows) => setResumes(rows),
+      () => setResumes([])
+    );
     return () => unsubscribe();
   }, [user?.uid]);
 
@@ -137,22 +148,15 @@ export default function Dashboard() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Link to="/" className={styles.logoLink} aria-label="Driftr dashboard">
-            <img className={styles.logoImage} src={logo} alt="Driftr" />
-          </Link>
-          <div className={styles.subtitle}>Signed in as {user?.email || "Unknown"}</div>
-        </div>
-        <div className={styles.headerRight}>
+      <AppHeader
+        userEmail={user?.email}
+        onLogout={handleLogout}
+        primaryAction={
           <button className={styles.primaryButton} onClick={openAdd}>
             + Add application
           </button>
-          <button className={styles.primaryButton} onClick={handleLogout}>
-            Log out
-          </button>
-        </div>
-      </header>
+        }
+      />
 
       <main className={styles.main}>
         <StatsCards
@@ -185,6 +189,8 @@ export default function Dashboard() {
         saving={saving}
         statusOptions={STATUS_OPTIONS}
         initialValue={editing}
+        resumes={resumes}
+        applications={applications}
         onClose={() => {
           setFormOpen(false);
           setEditing(null);

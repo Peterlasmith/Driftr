@@ -38,6 +38,7 @@ function normalizeDoc(id, data) {
     jobUrl: data?.jobUrl ?? "",
     dateApplied: toJsDate(data?.dateApplied),
     status: data?.status ?? "Applied",
+    resumeVersionId: data?.resumeVersionId ?? "",
     resumeVersion: data?.resumeVersion ?? "",
     notes: data?.notes ?? ""
   };
@@ -73,6 +74,7 @@ export async function createApplication(userId, input) {
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
     status: input.status ?? "Applied",
+    resumeVersionId: input.resumeVersionId || null,
     resumeVersion: input.resumeVersion?.trim() || null,
     notes: input.notes?.trim() || null,
     createdAt: serverTimestamp(),
@@ -93,6 +95,7 @@ export async function updateApplication(userId, id, input) {
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
     status: input.status ?? "Applied",
+    resumeVersionId: input.resumeVersionId || null,
     resumeVersion: input.resumeVersion?.trim() || null,
     notes: input.notes?.trim() || null,
     updatedAt: serverTimestamp()

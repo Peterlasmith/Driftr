@@ -16,6 +16,18 @@ Simple MVP dashboard for tracking job applications.
 
 Backend parser function and deploy instructions live in `functions/README.md`.
 
+## Firebase Storage (Resumes)
+
+Resumes are stored in Firebase Storage at:
+
+- `resumes/{userId}/{resumeId}.pdf` (or `.docx`)
+
+Rules live in `storage.rules` and restrict access to the authenticated user, limit uploads to 5MB, and allow only PDF/DOCX.
+
+To deploy rules:
+
+- `firebase deploy --only firestore:rules,storage`
+
 ## Legacy Supabase notes
 
 The section below is from an earlier Supabase version of the project and may be outdated.

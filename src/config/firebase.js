@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported as analyticsIsSupported } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -29,6 +30,7 @@ if (missing.length > 0) {
 export const firebaseApp = initializeApp(firebaseConfig);
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
+export const storage = getStorage(firebaseApp);
 export const googleProvider = new GoogleAuthProvider();
 
 export async function maybeInitAnalytics() {
