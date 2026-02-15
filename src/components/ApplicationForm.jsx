@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./ApplicationForm.module.css";
+import { parseJobUrl } from "../services/jobUrlParser";
 
 const EMPTY = {
   id: null,
   jobTitle: "",
   company: "",
+  location: "",
   jobUrl: "",
   dateApplied: "",
   status: "Applied",
@@ -33,7 +35,7 @@ export default function ApplicationForm({
   const isEdit = Boolean(initialValue?.id);
 
   const initial = useMemo(() => {
-    if (!initialValue) return EMPTY;
+    if (!initialValue) return { ...EMPTY, dateApplied: toDateInputValue(new Date()) };
     return {
       ...EMPTY,
       ...initialValue,
@@ -42,9 +44,12 @@ export default function ApplicationForm({
   }, [initialValue]);
 
   const [value, setValue] = useState(initial);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState("");
 
   useEffect(() => {
     setValue(initial);
+    setParseError("");
   }, [initial]);
 
   if (!open) return null;
@@ -53,12 +58,43 @@ export default function ApplicationForm({
     setValue((v) => ({ ...v, [name]: next }));
   }
 
+  function mergeAutofill(next) {
+    setValue((v) => {
+      return {
+        ...v,
+        jobTitle: v.jobTitle || next.jobTitle || "",
+        company: v.company || next.company || "",
+        location: v.location || next.location || ""
+      };
+    });
+  }
+
+  async function handleAutofill() {
+    const url = value.jobUrl.trim();
+    if (!url) return;
+    setParseError("");
+    setParsing(true);
+    try {
+      const result = await parseJobUrl(url);
+      if (!result?.ok) {
+        setParseError(result?.error || "Couldn’t auto-fill from that URL.");
+        return;
+      }
+      mergeAutofill(result);
+    } catch (err) {
+      setParseError(err?.message || "Couldn’t auto-fill from that URL.");
+    } finally {
+      setParsing(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const payload = {
       ...(isEdit ? { id: value.id } : null),
       jobTitle: value.jobTitle.trim(),
       company: value.company.trim(),
+      location: value.location.trim() || null,
       jobUrl: value.jobUrl.trim(),
       dateApplied: value.dateApplied || null,
       status: value.status,
@@ -104,11 +140,40 @@ export default function ApplicationForm({
 
             <label className={styles.fieldWide}>
               <div className={styles.label}>Job URL</div>
+              <div className={styles.urlRow}>
+                <input
+                  className={styles.input}
+                  value={value.jobUrl}
+                  onChange={(e) => updateField("jobUrl", e.target.value)}
+                  onBlur={() => {
+                    const shouldAuto =
+                      value.jobUrl.trim() && !value.jobTitle.trim() && !value.company.trim();
+                    if (shouldAuto && !parsing) handleAutofill();
+                  }}
+                  placeholder="https://…"
+                />
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={handleAutofill}
+                  disabled={parsing || !value.jobUrl.trim()}
+                  aria-busy={parsing ? "true" : "false"}
+                >
+                  {parsing ? "Auto-filling…" : "Auto-fill"}
+                </button>
+              </div>
+              {parseError ? <div className={styles.errorText}>{parseError}</div> : null}
+            </label>
+
+            <label className={styles.field}>
+              <div className={styles.label}>
+                Location <span className={styles.optional}>(optional)</span>
+              </div>
               <input
                 className={styles.input}
-                value={value.jobUrl}
-                onChange={(e) => updateField("jobUrl", e.target.value)}
-                placeholder="https://…"
+                value={value.location}
+                onChange={(e) => updateField("location", e.target.value)}
+                placeholder="San Francisco, CA"
               />
             </label>
 

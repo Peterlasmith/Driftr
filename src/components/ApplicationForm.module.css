@@ -72,6 +72,18 @@
   grid-column: 1 / -1;
 }
 
+.urlRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.errorText {
+  font-size: 12px;
+  color: rgba(160, 73, 62, 0.95);
+}
+
 .label {
   font-size: 12px;
   color: var(--muted-on-panel);

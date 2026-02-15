@@ -59,13 +59,15 @@ export default function ApplicationTable({
         <tbody>
           {applications.map((app) => (
             <tr key={app.id}>
-              <td className={styles.titleCell}>
-                <div className={styles.jobTitle}>{app.jobTitle || "—"}</div>
-                {app.jobUrl ? (
-                  <a className={styles.url} href={app.jobUrl} target="_blank" rel="noreferrer">
-                    View posting
-                  </a>
-                ) : null}
+              <td>
+                <div className={styles.titleCell}>
+                  <div className={styles.jobTitle}>{app.jobTitle || "—"}</div>
+                  {app.jobUrl ? (
+                    <a className={styles.url} href={app.jobUrl} target="_blank" rel="noreferrer">
+                      View posting
+                    </a>
+                  ) : null}
+                </div>
               </td>
               <td>{app.company || "—"}</td>
               <td>{formatDate(app.dateApplied)}</td>

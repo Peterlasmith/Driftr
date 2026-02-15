@@ -34,6 +34,7 @@ function normalizeDoc(id, data) {
     userId: data?.userId ?? "",
     jobTitle: data?.jobTitle ?? "",
     company: data?.company ?? "",
+    location: data?.location ?? "",
     jobUrl: data?.jobUrl ?? "",
     dateApplied: toJsDate(data?.dateApplied),
     status: data?.status ?? "Applied",
@@ -68,6 +69,7 @@ export async function createApplication(userId, input) {
     userId,
     jobTitle: input.jobTitle?.trim() ?? "",
     company: input.company?.trim() ?? "",
+    location: input.location?.trim() || null,
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
     status: input.status ?? "Applied",
@@ -87,6 +89,7 @@ export async function updateApplication(userId, id, input) {
   const payload = {
     jobTitle: input.jobTitle?.trim() ?? "",
     company: input.company?.trim() ?? "",
+    location: input.location?.trim() || null,
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
     status: input.status ?? "Applied",

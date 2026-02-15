@@ -1,4 +1,4 @@
-# Job Tracker (React + Supabase)
+# Driftr (React + Firebase)
 
 Simple MVP dashboard for tracking job applications.
 
@@ -8,11 +8,17 @@ Simple MVP dashboard for tracking job applications.
    - `npm install`
 2. Create an env file:
    - `cp .env.example .env`
-   - Fill in `REACT_APP_SUPABASE_URL` and `REACT_APP_SUPABASE_ANON_KEY`
+   - Fill in Firebase env vars (`REACT_APP_FIREBASE_*`)
 3. Start the app:
    - `npm start`
 
-## Supabase setup
+## URL auto-fill parser
+
+Backend parser function and deploy instructions live in `functions/README.md`.
+
+## Legacy Supabase notes
+
+The section below is from an earlier Supabase version of the project and may be outdated.
 
 ### 1) Create the table
 
@@ -60,4 +66,3 @@ The app subscribes to Postgres changes and refreshes the list automatically.
 - Table is sorted by `date_applied` (newest first).
 - Response rate counts any status beyond `Applied`.
 - Active excludes `Offer` and `Rejected`.
-
