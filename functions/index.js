@@ -102,6 +102,21 @@ function formatLocation(address) {
   return pickFirst(city, region, address.addressCountry);
 }
 
+function extractLinkedInCompanyFromDom($) {
+  const selectors = [
+    ".job-details-jobs-unified-top-card__company-name",
+    ".jobs-unified-top-card__company-name",
+    ".jobs-unified-top-card__company-name a",
+    ".job-details-jobs-unified-top-card__company-name a"
+  ];
+
+  for (const sel of selectors) {
+    const text = normalizeText($(sel).first().text());
+    if (text) return text;
+  }
+  return "";
+}
+
 function parseHtmlForJobDetails(html, finalUrl) {
   const $ = cheerio.load(html);
 
@@ -122,12 +137,29 @@ function parseHtmlForJobDetails(html, finalUrl) {
     if (found) jobPosting = found;
   });
 
+  const isLinkedIn = (() => {
+    try {
+      return new URL(finalUrl).hostname.toLowerCase().includes("linkedin.com");
+    } catch {
+      return false;
+    }
+  })();
+
   const jobTitle = pickFirst(jobPosting?.title, effectiveTitle);
-  const company = pickFirst(
-    jobPosting?.hiringOrganization?.name,
-    meta("og:site_name"),
-    normalizeText(effectiveTitle.split(" - ").slice(-1)[0])
-  );
+
+  const linkedInCompany = isLinkedIn ? extractLinkedInCompanyFromDom($) : "";
+  const inferredCompanyFromTitle = normalizeText(effectiveTitle.split(" - ").slice(-1)[0]);
+
+  let company = "";
+  if (isLinkedIn) {
+    company = pickFirst(jobPosting?.hiringOrganization?.name, linkedInCompany);
+  } else {
+    company = pickFirst(jobPosting?.hiringOrganization?.name, meta("og:site_name"), inferredCompanyFromTitle);
+  }
+
+  if (normalizeText(company) && normalizeText(company) === normalizeText(jobTitle)) {
+    company = pickFirst(linkedInCompany, jobPosting?.hiringOrganization?.name);
+  }
 
   let location = "";
   const loc = jobPosting?.jobLocation;
@@ -249,4 +281,3 @@ exports.parseJobUrl = onRequest({ region: "us-central1" }, async (req, res) => {
     }
   });
 });
-
