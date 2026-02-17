@@ -2,6 +2,7 @@ const cors = require("cors");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { parseHtmlForJobDetails } = require("./jobParser");
+const { analyzeResumeWithOpenAI, extractResumeText } = require("./resumeAnalyzer");
 
 admin.initializeApp();
 
@@ -62,6 +63,15 @@ function normalizeText(s) {
   return String(s || "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+async function downloadStorageFile(path) {
+  const clean = String(path || "").trim().replace(/^\/+/, "");
+  if (!clean) throw new Error("Missing storage path");
+  const bucket = admin.storage().bucket();
+  const file = bucket.file(clean);
+  const [buf] = await file.download();
+  return Buffer.from(buf);
 }
 
 async function verifyFirebaseIdToken(authHeader) {
@@ -153,6 +163,79 @@ exports.parseJobUrl = onRequest({ region: "us-central1" }, async (req, res) => {
       return res.status(200).json({
         ok: false,
         error: "Parse failed"
+      });
+    }
+  });
+});
+
+exports.analyzeResume = onRequest({ region: "us-central1", timeoutSeconds: 60 }, async (req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+    const uid = await verifyFirebaseIdToken(req.get("authorization"));
+    const ip =
+      (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+      req.socket?.remoteAddress ||
+      "";
+    const key = rateKey({ uid, ip });
+    if (!checkRateLimit(key)) return res.status(429).json({ error: "Rate limited" });
+    if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+    const resumeId = typeof req.body?.resumeId === "string" ? req.body.resumeId.trim() : "";
+    if (!resumeId) return res.status(400).json({ error: "Missing resumeId" });
+
+    try {
+      const resumeRef = admin.firestore().collection("resumes").doc(resumeId);
+      const snap = await resumeRef.get();
+      if (!snap.exists) return res.status(404).json({ error: "Resume not found" });
+      const data = snap.data() || {};
+      if (data.userId !== uid) return res.status(403).json({ error: "Forbidden" });
+
+      if (data.analysisResult && data.analyzedAt) {
+        return res.status(200).json({
+          ok: true,
+          cached: true,
+          analysisResult: data.analysisResult,
+          analyzedAt: data.analyzedAt
+        });
+      }
+
+      const storagePath = String(data.storagePath || "").trim();
+      if (!storagePath) return res.status(400).json({ error: "Resume file missing" });
+
+      const buffer = await downloadStorageFile(storagePath);
+      const text = await extractResumeText({
+        buffer,
+        fileType: data.fileType,
+        fileName: data.fileName
+      });
+      if (!text) return res.status(200).json({ ok: false, error: "No text found in resume" });
+
+      const analysisResult = await analyzeResumeWithOpenAI({ resumeText: text });
+      await resumeRef.update({
+        analysisResult,
+        analyzedAt: admin.firestore.FieldValue.serverTimestamp(),
+        feedback: null,
+        feedbackAt: null,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      return res.status(200).json({ ok: true, cached: false, analysisResult });
+    } catch (err) {
+      const msg = String(err?.message || "");
+      const isExtraction =
+        msg.toLowerCase().includes("unsupported file type") ||
+        msg.toLowerCase().includes("invalid pdf") ||
+        msg.toLowerCase().includes("corrupt");
+      const isAuth = msg.toLowerCase().includes("missing openai_api_key");
+      return res.status(200).json({
+        ok: false,
+        error: isAuth
+          ? "Resume analysis is not configured."
+          : isExtraction
+            ? "Couldn’t extract text from this file. Try re-exporting the PDF/DOCX and uploading again."
+            : "Resume analysis failed. Please try again."
       });
     }
   });

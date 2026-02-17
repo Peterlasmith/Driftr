@@ -34,7 +34,11 @@ function normalizeResume(id, data) {
     storagePath: data?.storagePath ?? "",
     uploadDate: toJsDate(data?.uploadDate),
     fileSize: data?.fileSize ?? 0,
-    fileType: data?.fileType ?? ""
+    fileType: data?.fileType ?? "",
+    analysisResult: data?.analysisResult ?? null,
+    analyzedAt: toJsDate(data?.analyzedAt),
+    feedback: data?.feedback ?? null,
+    feedbackAt: toJsDate(data?.feedbackAt)
   };
 }
 

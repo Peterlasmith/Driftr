@@ -1,0 +1,284 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 14, 0.45);
+  display: grid;
+  justify-items: end;
+  z-index: 50;
+}
+
+.panel {
+  height: 100%;
+  width: min(560px, 100%);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.header {
+  padding: 16px 16px 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.headerTitle {
+  display: grid;
+  gap: 2px;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 750;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 820;
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.iconButton {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.04);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.iconButton:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.body {
+  padding: 16px;
+  overflow: auto;
+}
+
+.state,
+.stateError {
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.stateError {
+  border-color: rgba(180, 35, 24, 0.24);
+  background: rgba(180, 35, 24, 0.06);
+}
+
+.stateTitle {
+  font-weight: 820;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.stateSub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.card {
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 12px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.cardLabel {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 780;
+}
+
+.cardValue {
+  font-weight: 820;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.score {
+  font-weight: 900;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.pct {
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.scoreGood {
+  color: rgba(28, 121, 66, 0.95);
+}
+
+.scoreOk {
+  color: rgba(161, 112, 11, 0.95);
+}
+
+.scoreLow {
+  color: rgba(160, 47, 40, 0.95);
+}
+
+.scoreNeutral {
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.summary {
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.02);
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.section {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-weight: 860;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.muted {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+}
+
+.strengthList,
+.gapList,
+.signalList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  line-height: 1.45;
+}
+
+.strengthList li {
+  color: rgba(28, 121, 66, 0.92);
+}
+
+.gapList li {
+  color: rgba(161, 112, 11, 0.96);
+}
+
+.signalList li {
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.altGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.altRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 10px 10px;
+}
+
+.altTitle {
+  font-weight: 760;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+.altScore {
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.68);
+}
+
+.timestamp {
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedbackLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.64);
+  font-weight: 750;
+}
+
+.feedbackButtons {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.feedbackButton {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  width: 40px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.feedbackButton:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.feedbackActive {
+  border-color: rgba(232, 117, 74, 0.45);
+  background: rgba(232, 117, 74, 0.12);
+}
+
+.feedbackButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

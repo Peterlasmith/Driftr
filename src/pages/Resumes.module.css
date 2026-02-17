@@ -46,6 +46,70 @@
   color: var(--muted-on-panel);
 }
 
+.aiWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.aiBadge {
+  appearance: none;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 780;
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.aiBadge:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.aiBadgeReady {
+  border-color: rgba(232, 117, 74, 0.35);
+  background: rgba(232, 117, 74, 0.12);
+  color: rgba(120, 45, 20, 0.92);
+}
+
+.aiBadgeBusy {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.aiTooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  max-width: min(68vw, 320px);
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.aiTooltipTitle {
+  font-weight: 850;
+  color: rgba(0, 0, 0, 0.82);
+  font-size: 12px;
+}
+
+.aiTooltipBody {
+  margin-top: 4px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.aiTooltipError {
+  color: rgba(160, 47, 40, 0.92);
+}
+
 .bestRow {
   background: rgba(232, 117, 74, 0.08);
 }

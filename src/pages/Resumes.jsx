@@ -3,8 +3,10 @@ import styles from "./Resumes.module.css";
 import shell from "../App.module.css";
 import { useAuth } from "../auth/AuthProvider";
 import AppHeader from "../components/AppHeader";
+import ResumeAnalysisPanel from "../components/ResumeAnalysisPanel";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import { subscribeToApplications } from "../services/applications";
+import { analyzeResume, setResumeAnalysisFeedback } from "../services/resumeAnalysis";
 import {
   deleteResumeAndUnlinkApplications,
   renameResume,
@@ -39,6 +41,11 @@ export default function Resumes() {
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [error, setError] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [hoveredAiId, setHoveredAiId] = useState("");
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [analysisResumeId, setAnalysisResumeId] = useState("");
+  const [analysisBusyById, setAnalysisBusyById] = useState(() => new Map());
+  const [analysisErrorById, setAnalysisErrorById] = useState(() => new Map());
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -96,6 +103,10 @@ export default function Resumes() {
     });
   }, [resumes, perf]);
 
+  const analysisResume = useMemo(() => {
+    return (rows || []).find((r) => r.id === analysisResumeId) || null;
+  }, [rows, analysisResumeId]);
+
   async function handleLogout() {
     setError("");
     try {
@@ -127,6 +138,54 @@ export default function Resumes() {
       await renameResume(user.uid, resume.id, next);
     } catch (err) {
       setError(err?.message || "Failed to rename resume.");
+    }
+  }
+
+  async function handleOpenAnalysis(resume) {
+    if (!resume?.id) return;
+    setAnalysisResumeId(resume.id);
+    setAnalysisOpen(true);
+
+    const hasCached = Boolean(resume.analysisResult && resume.analyzedAt);
+    if (hasCached) return;
+
+    const busy = analysisBusyById.get(resume.id);
+    if (busy) return;
+
+    setAnalysisErrorById((prev) => {
+      const next = new Map(prev);
+      next.delete(resume.id);
+      return next;
+    });
+    setAnalysisBusyById((prev) => {
+      const next = new Map(prev);
+      next.set(resume.id, true);
+      return next;
+    });
+
+    try {
+      await analyzeResume(resume.id);
+    } catch (err) {
+      const msg = err?.message || "Resume analysis failed. Please try again.";
+      setAnalysisErrorById((prev) => {
+        const next = new Map(prev);
+        next.set(resume.id, msg);
+        return next;
+      });
+    } finally {
+      setAnalysisBusyById((prev) => {
+        const next = new Map(prev);
+        next.delete(resume.id);
+        return next;
+      });
+    }
+  }
+
+  async function handleFeedback(resumeId, value) {
+    try {
+      await setResumeAnalysisFeedback(resumeId, value);
+    } catch {
+      // ignore; UI will reflect latest from subscription when possible
     }
   }
 
@@ -194,6 +253,52 @@ export default function Resumes() {
                           <div className={styles.resumeName}>
                             {r.versionName || "Untitled resume"}
                             {r.isBest ? <span className={styles.bestBadge}>Best</span> : null}
+                            <span
+                              className={styles.aiWrap}
+                              onMouseEnter={() => setHoveredAiId(r.id)}
+                              onMouseLeave={() => setHoveredAiId("")}
+                            >
+                              <button
+                                className={[
+                                  styles.aiBadge,
+                                  r.analysisResult ? styles.aiBadgeReady : "",
+                                  analysisBusyById.get(r.id) ? styles.aiBadgeBusy : ""
+                                ].join(" ")}
+                                type="button"
+                                onClick={() => handleOpenAnalysis(r)}
+                                aria-busy={analysisBusyById.get(r.id) ? "true" : "false"}
+                                aria-label={
+                                  r.analysisResult ? "Open AI analysis" : "Analyze this resume with AI"
+                                }
+                              >
+                                AI
+                              </button>
+                              {hoveredAiId === r.id ? (
+                                <div className={styles.aiTooltip} role="tooltip">
+                                  <div className={styles.aiTooltipTitle}>
+                                    {analysisBusyById.get(r.id)
+                                      ? "Analyzing…"
+                                      : r.analysisResult
+                                        ? "AI Summary"
+                                        : "AI Analysis"}
+                                  </div>
+                                  <div
+                                    className={[
+                                      styles.aiTooltipBody,
+                                      analysisErrorById.get(r.id) ? styles.aiTooltipError : ""
+                                    ].join(" ")}
+                                  >
+                                    {analysisErrorById.get(r.id)
+                                      ? analysisErrorById.get(r.id)
+                                      : analysisBusyById.get(r.id)
+                                        ? "Extracting text and generating insights."
+                                        : r.analysisResult?.summary
+                                          ? r.analysisResult.summary
+                                          : "Click to generate an AI assessment."}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </span>
                           </div>
                           <div className={styles.resumeMeta}>{r.fileName || "—"}</div>
                         </div>
@@ -257,6 +362,21 @@ export default function Resumes() {
         resumes={resumes}
         onClose={() => setUploadOpen(false)}
         onUploaded={() => {}}
+      />
+
+      <ResumeAnalysisPanel
+        open={analysisOpen}
+        title={analysisResume?.versionName || analysisResume?.fileName || "Resume"}
+        analysisResult={analysisResume?.analysisResult || null}
+        analyzedAt={analysisResume?.analyzedAt || null}
+        loading={analysisResumeId ? Boolean(analysisBusyById.get(analysisResumeId)) : false}
+        error={analysisResumeId ? analysisErrorById.get(analysisResumeId) || "" : ""}
+        feedback={analysisResume?.feedback || null}
+        onClose={() => setAnalysisOpen(false)}
+        onFeedback={(value) => {
+          if (!analysisResumeId) return;
+          handleFeedback(analysisResumeId, value);
+        }}
       />
     </div>
   );
