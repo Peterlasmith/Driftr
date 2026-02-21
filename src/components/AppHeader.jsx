@@ -9,7 +9,7 @@ export default function AppHeader({ userEmail, onLogout }) {
   const menuId = useId();
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
-  const logoutRef = useRef(null);
+  const settingsRef = useRef(null);
   const dashboardActive = pathname === "/" || pathname === "/dashboard";
   const resumesActive = pathname === "/resumes" || pathname.startsWith("/resumes/");
   const settingsActive =
@@ -43,7 +43,7 @@ export default function AppHeader({ userEmail, onLogout }) {
 
   useEffect(() => {
     if (!menuOpen) return;
-    requestAnimationFrame(() => logoutRef.current?.focus());
+    requestAnimationFrame(() => settingsRef.current?.focus());
   }, [menuOpen]);
 
   function handleMenuBlur() {
@@ -62,6 +62,10 @@ export default function AppHeader({ userEmail, onLogout }) {
     if (event.key !== "ArrowDown") return;
     event.preventDefault();
     setMenuOpen(true);
+  }
+
+  function handleSettingsClick() {
+    setMenuOpen(false);
   }
 
   function handleLogoutClick() {
@@ -97,14 +101,6 @@ export default function AppHeader({ userEmail, onLogout }) {
           >
             Resumes
           </NavLink>
-          <NavLink
-            to="/settings"
-            className={[styles.navLink, settingsActive ? styles.navLinkActive : ""]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            Settings
-          </NavLink>
         </nav>
 
         <div className={styles.accountMenu} onBlurCapture={handleMenuBlur}>
@@ -129,8 +125,18 @@ export default function AppHeader({ userEmail, onLogout }) {
             role="menu"
             aria-label="Account"
           >
+            <NavLink
+              ref={settingsRef}
+              to="/settings"
+              className={[styles.accountMenuItem, settingsActive ? styles.accountMenuItemActive : ""]
+                .filter(Boolean)
+                .join(" ")}
+              role="menuitem"
+              onClick={handleSettingsClick}
+            >
+              Settings
+            </NavLink>
             <button
-              ref={logoutRef}
               className={styles.accountMenuItem}
               role="menuitem"
               onClick={handleLogoutClick}

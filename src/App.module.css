@@ -163,9 +163,21 @@
   background: transparent;
   color: var(--text-on-panel);
   text-align: left;
+  text-decoration: none;
   font-size: 14px;
   padding: 9px 10px;
   cursor: pointer;
+  display: block;
+  width: 100%;
+}
+
+.accountMenuItem:link,
+.accountMenuItem:visited {
+  color: var(--text-on-panel);
+}
+
+.accountMenuItemActive {
+  background: rgba(160, 73, 62, 0.12);
 }
 
 .accountMenuItem:hover {
