@@ -1,9 +1,74 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import styles from "../App.module.css";
 import logo from "../assets/logo.svg";
 
-export default function AppHeader({ userEmail, onLogout, primaryAction }) {
+export default function AppHeader({ userEmail, onLogout }) {
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+  const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+  const logoutRef = useRef(null);
+  const dashboardActive = pathname === "/" || pathname === "/dashboard";
+  const resumesActive = pathname === "/resumes" || pathname.startsWith("/resumes/");
+  const settingsActive =
+    pathname === "/settings" ||
+    pathname.startsWith("/settings/") ||
+    pathname === "/archive" ||
+    pathname.startsWith("/archive/");
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function closeOnOutsidePointer(event) {
+      const target = event.target;
+      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    }
+
+    function closeOnEscape(event) {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      triggerRef.current?.focus();
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    requestAnimationFrame(() => logoutRef.current?.focus());
+  }, [menuOpen]);
+
+  function handleMenuBlur() {
+    window.setTimeout(() => {
+      const active = document.activeElement;
+      if (menuRef.current?.contains(active) || triggerRef.current?.contains(active)) return;
+      setMenuOpen(false);
+    }, 0);
+  }
+
+  function toggleMenu() {
+    setMenuOpen((open) => !open);
+  }
+
+  function handleTriggerKeyDown(event) {
+    if (event.key !== "ArrowDown") return;
+    event.preventDefault();
+    setMenuOpen(true);
+  }
+
+  function handleLogoutClick() {
+    setMenuOpen(false);
+    onLogout();
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
@@ -18,28 +83,64 @@ export default function AppHeader({ userEmail, onLogout, primaryAction }) {
           <NavLink
             to="/"
             end
-            className={({ isActive }) =>
-              [styles.navLink, isActive ? styles.navLinkActive : ""].filter(Boolean).join(" ")
-            }
+            className={[styles.navLink, dashboardActive ? styles.navLinkActive : ""]
+              .filter(Boolean)
+              .join(" ")}
           >
             Dashboard
           </NavLink>
           <NavLink
             to="/resumes"
-            className={({ isActive }) =>
-              [styles.navLink, isActive ? styles.navLinkActive : ""].filter(Boolean).join(" ")
-            }
+            className={[styles.navLink, resumesActive ? styles.navLinkActive : ""]
+              .filter(Boolean)
+              .join(" ")}
           >
             Resumes
           </NavLink>
+          <NavLink
+            to="/settings"
+            className={[styles.navLink, settingsActive ? styles.navLinkActive : ""]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            Settings
+          </NavLink>
         </nav>
 
-        {primaryAction}
-        <button className={styles.primaryButton} onClick={onLogout}>
-          Log out
-        </button>
+        <div className={styles.accountMenu} onBlurCapture={handleMenuBlur}>
+          <button
+            ref={triggerRef}
+            className={styles.secondaryButton}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen ? "true" : "false"}
+            aria-controls={menuId}
+            onClick={toggleMenu}
+            onKeyDown={handleTriggerKeyDown}
+            type="button"
+          >
+            Account
+          </button>
+          <div
+            id={menuId}
+            ref={menuRef}
+            className={[styles.accountMenuPanel, menuOpen ? styles.accountMenuPanelOpen : ""]
+              .filter(Boolean)
+              .join(" ")}
+            role="menu"
+            aria-label="Account"
+          >
+            <button
+              ref={logoutRef}
+              className={styles.accountMenuItem}
+              role="menuitem"
+              onClick={handleLogoutClick}
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   );
 }
-

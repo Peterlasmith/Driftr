@@ -118,3 +118,24 @@
 .dangerButton:hover {
   background: rgba(180, 35, 24, 0.14);
 }
+
+.rejectedSection {
+  border-top: 1px solid var(--border);
+}
+
+.rejectedHeader {
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
+  padding: 12px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rejectedHeader:hover {
+  background: rgba(160, 73, 62, 0.12);
+}

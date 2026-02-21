@@ -52,6 +52,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav {
@@ -99,6 +101,17 @@
   font-weight: 650;
 }
 
+.secondaryButton {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
 .primaryButton:hover {
   background: var(--accent-hover);
 }
@@ -107,9 +120,61 @@
   background: var(--accent-press);
 }
 
+.secondaryButton:hover {
+  background: rgba(160, 73, 62, 0.12);
+}
+
 .primaryButton:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+}
+
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.accountMenu {
+  position: relative;
+}
+
+.accountMenuPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 156px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 252, 245, 0.98);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.14);
+  display: none;
+  z-index: 20;
+}
+
+.accountMenuPanelOpen {
+  display: grid;
+}
+
+.accountMenuItem {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-on-panel);
+  text-align: left;
+  font-size: 14px;
+  padding: 9px 10px;
+  cursor: pointer;
+}
+
+.accountMenuItem:hover {
+  background: rgba(160, 73, 62, 0.12);
+}
+
+.accountMenuItem:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
 .main {
@@ -136,6 +201,11 @@
   border-bottom: 1px solid var(--border);
 }
 
+.panelHeaderMain {
+  display: grid;
+  gap: 2px;
+}
+
 .panelTitle {
   font-weight: 750;
 }
@@ -143,6 +213,14 @@
 .panelMeta {
   color: var(--muted-on-panel);
   font-size: 12px;
+}
+
+.panelHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .errorBanner {
@@ -174,6 +252,40 @@
   .logoImage {
     height: 42px;
     max-width: 80vw;
+  }
+
+  .headerRight {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .secondaryButton {
+    width: 100%;
+  }
+
+  .accountMenu {
+    width: 100%;
+  }
+
+  .accountMenuPanel {
+    left: 0;
+    right: auto;
+    min-width: 100%;
+  }
+
+  .panelHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .panelHeaderActions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-direction: column;
+  }
+
+  .panelHeaderActions > * {
+    width: 100%;
   }
 
   .primaryButton {

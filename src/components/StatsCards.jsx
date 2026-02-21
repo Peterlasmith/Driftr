@@ -14,11 +14,10 @@ function StatCard({ label, value, sub }) {
 export default function StatsCards({ total, responseRate, active, avgDaysSince }) {
   return (
     <section className={styles.grid}>
-      <StatCard label="Total applications" value={total} />
+      <StatCard label="Total applications" value={total} sub="Excludes archived records" />
       <StatCard label="Response rate" value={`${responseRate}%`} sub="Any status beyond Applied" />
       <StatCard label="Active applications" value={active} sub="Excludes Offer and Rejected" />
       <StatCard label="Avg days since application" value={avgDaysSince} />
     </section>
   );
 }
-

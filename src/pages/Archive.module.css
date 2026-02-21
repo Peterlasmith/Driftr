@@ -1,0 +1,101 @@
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-on-panel);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: rgba(232, 117, 74, 0.75);
+  box-shadow: var(--focus-shadow);
+}
+
+.counter {
+  font-size: 12px;
+  color: var(--muted-on-panel);
+  background: rgba(160, 73, 62, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 9px 12px;
+}
+
+.empty {
+  padding: 24px 14px 28px;
+  color: var(--muted-on-panel);
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--muted-on-panel);
+  font-weight: 650;
+  background: rgba(160, 73, 62, 0.08);
+}
+
+.right {
+  text-align: right;
+}
+
+.actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.secondaryButton,
+.dangerButton {
+  appearance: none;
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
+}
+
+.secondaryButton:hover {
+  background: rgba(160, 73, 62, 0.12);
+}
+
+.dangerButton {
+  border-color: rgba(180, 35, 24, 0.35);
+  background: rgba(180, 35, 24, 0.1);
+}
+
+.dangerButton:hover {
+  background: rgba(180, 35, 24, 0.14);
+}
+
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

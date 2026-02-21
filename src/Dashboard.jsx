@@ -3,18 +3,21 @@ import StatsCards from "./components/StatsCards";
 import ApplicationTable from "./components/ApplicationTable";
 import ApplicationForm from "./components/ApplicationForm";
 import {
+  APPLICATION_STATUS_OPTIONS,
+  REJECTION_REASON_OPTIONS,
+  archiveApplication,
   createApplication,
   deleteApplication,
   subscribeToApplications,
   updateApplication,
-  updateApplicationStatus
+  updateApplicationStatusWithRejectionMeta
 } from "./services/applications";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
 import AppHeader from "./components/AppHeader";
 import { subscribeToResumes } from "./services/resumes";
-
-const STATUS_OPTIONS = ["Applied", "Screening", "Interview", "Offer", "Rejected"];
+import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
+import RejectionReasonModal from "./components/RejectionReasonModal";
 
 function daysSince(dateApplied) {
   if (!dateApplied) return null;
@@ -53,9 +56,25 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [rejectedCollapsed, setRejectedCollapsed] = useState(true);
+  const [rejectionModal, setRejectionModal] = useState({ open: false, app: null });
+  const [rejectionSaving, setRejectionSaving] = useState(false);
 
-  const stats = useMemo(() => calcStats(applications), [applications]);
+  const nonArchivedApplications = useMemo(
+    () => applications.filter((app) => !app.archivedAt),
+    [applications]
+  );
+  const visibleApplications = useMemo(
+    () => nonArchivedApplications.filter((app) => app.status !== "Rejected"),
+    [nonArchivedApplications]
+  );
+  const rejectedApplications = useMemo(
+    () => nonArchivedApplications.filter((app) => app.status === "Rejected"),
+    [nonArchivedApplications]
+  );
+  const stats = useMemo(() => calcStats(nonArchivedApplications), [nonArchivedApplications]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -117,14 +136,54 @@ export default function Dashboard() {
     }
   }
 
-  async function handleStatusChange(id, status) {
-    if (!STATUS_OPTIONS.includes(status)) return;
+  async function handleStatusChange(app, status) {
+    if (!APPLICATION_STATUS_OPTIONS.includes(status)) return;
+    if (!app?.id) return;
+
+    if (status === "Rejected" && app.status !== "Rejected") {
+      setRejectionModal({ open: true, app });
+      return;
+    }
+
     setError("");
     try {
-      await updateApplicationStatus(user.uid, id, status);
+      await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
     } catch (err) {
       setError(err?.message || "Failed to update status.");
     }
+  }
+
+  async function handleArchive(id) {
+    setError("");
+    try {
+      await archiveApplication(user.uid, id);
+    } catch (err) {
+      setError(err?.message || "Failed to archive application.");
+    }
+  }
+
+  function handleRejectionCancel() {
+    if (rejectionSaving) return;
+    setRejectionModal({ open: false, app: null });
+  }
+
+  async function handleRejectionSubmit(payload) {
+    if (!rejectionModal.app?.id) return;
+    setRejectionSaving(true);
+    setError("");
+    try {
+      await updateApplicationStatusWithRejectionMeta(user.uid, rejectionModal.app.id, "Rejected", payload);
+      setRejectionModal({ open: false, app: null });
+    } catch (err) {
+      setError(err?.message || "Failed to save rejection details.");
+    } finally {
+      setRejectionSaving(false);
+    }
+  }
+
+  function openRejectionReasonModal(app) {
+    if (!app?.id) return;
+    setRejectionModal({ open: true, app });
   }
 
   function openAdd() {
@@ -148,15 +207,7 @@ export default function Dashboard() {
 
   return (
     <div className={styles.page}>
-      <AppHeader
-        userEmail={user?.email}
-        onLogout={handleLogout}
-        primaryAction={
-          <button className={styles.primaryButton} onClick={openAdd}>
-            + Add application
-          </button>
-        }
-      />
+      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
 
       <main className={styles.main}>
         <StatsCards
@@ -168,18 +219,30 @@ export default function Dashboard() {
 
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div className={styles.panelTitle}>Applications</div>
-            <div className={styles.panelMeta}>Sorted by newest date applied</div>
+            <div className={styles.panelHeaderMain}>
+              <div className={styles.panelTitle}>Applications</div>
+              <div className={styles.panelMeta}>Sorted by newest date applied</div>
+            </div>
+            <div className={styles.panelHeaderActions}>
+              <button className={styles.primaryButton} onClick={openAdd} type="button">
+                + Add application
+              </button>
+            </div>
           </div>
 
           {error ? <div className={styles.errorBanner}>{error}</div> : null}
 
           <ApplicationTable
-            applications={applications}
+            applications={visibleApplications}
+            rejectedApplications={rejectedApplications}
+            rejectedCollapsed={rejectedCollapsed}
+            onToggleRejectedCollapse={() => setRejectedCollapsed((value) => !value)}
             loading={loading}
             onEdit={openEdit}
             onDelete={handleDelete}
             onStatusChange={handleStatusChange}
+            onArchive={handleArchive}
+            onCaptureRejection={openRejectionReasonModal}
           />
         </section>
       </main>
@@ -187,7 +250,7 @@ export default function Dashboard() {
       <ApplicationForm
         open={formOpen}
         saving={saving}
-        statusOptions={STATUS_OPTIONS}
+        statusOptions={APPLICATION_STATUS_OPTIONS}
         initialValue={editing}
         resumes={resumes}
         applications={applications}
@@ -195,7 +258,28 @@ export default function Dashboard() {
           setFormOpen(false);
           setEditing(null);
         }}
+        onOpenImport={() => {
+          setFormOpen(false);
+          setEditing(null);
+          setImportOpen(true);
+        }}
         onSubmit={handleCreateOrUpdate}
+      />
+
+      <RejectionReasonModal
+        open={rejectionModal.open}
+        app={rejectionModal.app}
+        reasonOptions={REJECTION_REASON_OPTIONS}
+        saving={rejectionSaving}
+        onCancel={handleRejectionCancel}
+        onSubmit={handleRejectionSubmit}
+      />
+
+      <ApplicationCsvImportModal
+        open={importOpen}
+        userId={user?.uid}
+        resumes={resumes}
+        onClose={() => setImportOpen(false)}
       />
     </div>
   );

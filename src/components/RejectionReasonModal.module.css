@@ -5,18 +5,18 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  z-index: 50;
+  z-index: 60;
 }
 
 .modal {
   width: 100%;
-  max-width: 780px;
+  max-width: 640px;
   background: linear-gradient(180deg, rgba(255, 248, 232, 0.98), rgba(255, 248, 232, 0.92));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
   color: var(--text-on-panel);
+  overflow: hidden;
 }
 
 .header {
@@ -46,42 +46,15 @@
   background: rgba(160, 73, 62, 0.12);
 }
 
-.iconButton:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-.form {
+.body {
   padding: 14px;
-}
-
-.grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.fieldWide {
-  display: grid;
-  gap: 6px;
-  grid-column: 1 / -1;
-}
-
-.urlRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
   gap: 10px;
-  align-items: center;
 }
 
-.errorText {
-  font-size: 12px;
-  color: rgba(160, 73, 62, 0.95);
+.context {
+  font-size: 13px;
+  color: var(--muted-on-panel);
 }
 
 .label {
@@ -89,13 +62,42 @@
   color: var(--muted-on-panel);
 }
 
-.optional {
-  color: var(--muted-on-panel);
+.tagGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.input,
+.tag {
+  appearance: none;
+  border-radius: 999px;
+  border: 1px solid var(--input-border);
+  background: rgba(160, 73, 62, 0.08);
+  color: var(--text-on-panel);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.tagSelected {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.error {
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.noteField {
+  display: grid;
+  gap: 6px;
+}
+
 .textarea {
   width: 100%;
+  min-height: 92px;
+  resize: vertical;
   border-radius: 12px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
@@ -104,12 +106,6 @@
   outline: none;
 }
 
-.textarea {
-  resize: vertical;
-  min-height: 92px;
-}
-
-.input:focus,
 .textarea:focus {
   border-color: rgba(232, 117, 74, 0.75);
   box-shadow: var(--focus-shadow);
@@ -119,14 +115,13 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 14px;
-  padding-top: 12px;
+  padding: 12px 14px 14px;
   border-top: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
 .secondaryButton,
-.primaryButton,
-.tertiaryButton {
+.primaryButton {
   appearance: none;
   border-radius: 12px;
   padding: 10px 12px;
@@ -137,7 +132,6 @@
 }
 
 .primaryButton {
-  border-color: rgba(0, 0, 0, 0.12);
   background: var(--accent);
   color: var(--accent-contrast);
   font-weight: 650;
@@ -147,43 +141,13 @@
   background: var(--accent-hover);
 }
 
-.primaryButton:active {
-  background: var(--accent-press);
-}
-
 .secondaryButton:hover {
   background: rgba(160, 73, 62, 0.12);
 }
 
-.secondaryButton:focus-visible,
-.primaryButton:focus-visible,
-.tertiaryButton:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-.tertiaryButton {
-  margin-right: auto;
-  padding: 8px 4px;
-  border: 0;
-  background: transparent;
-  color: var(--muted-on-panel);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.tertiaryButton:hover {
-  color: var(--text-on-panel);
-  background: transparent;
-}
-
-.primaryButton:disabled {
+.secondaryButton:disabled,
+.primaryButton:disabled,
+.iconButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
 }

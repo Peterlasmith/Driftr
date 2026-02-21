@@ -191,21 +191,24 @@ export default function Resumes() {
 
   return (
     <div className={shell.page}>
-      <AppHeader
-        userEmail={user?.email}
-        onLogout={handleLogout}
-        primaryAction={
-          <button className={shell.primaryButton} onClick={() => setUploadOpen(true)}>
-            + Upload Resume
-          </button>
-        }
-      />
+      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
 
       <main className={shell.main}>
         <section className={shell.panel}>
           <div className={shell.panelHeader}>
-            <div className={shell.panelTitle}>Resumes</div>
-            <div className={shell.panelMeta}>Performance updates as you log application outcomes</div>
+            <div className={shell.panelHeaderMain}>
+              <div className={shell.panelTitle}>Resumes</div>
+              <div className={shell.panelMeta}>Performance updates as you log application outcomes</div>
+            </div>
+            <div className={shell.panelHeaderActions}>
+              <button
+                className={shell.primaryButton}
+                onClick={() => setUploadOpen(true)}
+                type="button"
+              >
+                + Upload Resume
+              </button>
+            </div>
           </div>
 
           {error ? <div className={shell.errorBanner}>{error}</div> : null}
