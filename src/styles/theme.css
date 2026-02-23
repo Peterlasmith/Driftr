@@ -1,44 +1,61 @@
 :root {
-  /* Brand (Wix) */
-  --brand-bg: #a0493e; /* rust / burnt orange */
-  --brand-surface: #fff8e8; /* cream / beige */
-  --brand-accent: #e8754a; /* bright orange */
-  --brand-link: #d89c8c; /* peachy coral */
-  --brand-text-on-dark: #fff8e8; /* cream */
-  --brand-text-on-light: #000000; /* black */
+  /* Brand palette (dark theme) */
+  --rust: #B85C38;
+  --rust-dark: #8B3E22;
+  --rust-light: #D4795A;
 
-  /* App semantic tokens */
-  --bg: var(--brand-bg);
-  --panel: var(--brand-surface);
-  --panel-2: #fff1d2;
-  --text: var(--brand-text-on-dark);
-  --text-on-panel: var(--brand-text-on-light);
-  --muted: rgba(255, 248, 232, 0.84);
-  --muted-on-panel: rgba(0, 0, 0, 0.64);
-  --border: rgba(160, 73, 62, 0.22);
-  --shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
+  /* Fonts */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* Surfaces */
+  --bg: #1C1209;
+  --panel: #231510;
+  --panel-2: rgba(255, 255, 255, 0.04);
+  --panel-elevated: #2C1D12;
+  --rail-bg: #160E07;
+  --stats-bg: #231510;
+
+  /* Text */
+  --text: #ffffff;
+  --text-on-panel: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --muted: rgba(255, 255, 255, 0.38);
+  --muted-on-panel: rgba(255, 255, 255, 0.38);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --shadow: 0 40px 80px rgba(0, 0, 0, 0.65);
   --radius: 14px;
 
-  --accent: var(--brand-accent);
-  --accent-hover: #d9653e;
-  --accent-press: #c95833;
-  --accent-contrast: #1a0b08;
+  /* Accent (rust) */
+  --accent: var(--rust);
+  --accent-hover: var(--rust-dark);
+  --accent-press: #7A3318;
+  --accent-contrast: #ffffff;
 
-  --link: var(--brand-link);
-  --link-hover: var(--brand-accent);
-  --link-visited: #c98575;
+  /* Links */
+  --link: var(--rust-light);
+  --link-hover: var(--rust);
+  --link-visited: #A06048;
 
-  --input-bg: #fffdf7;
-  --input-border: rgba(160, 73, 62, 0.32);
+  /* Inputs */
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
 
-  --focus-ring: rgba(232, 117, 74, 0.65);
-  --focus-shadow: 0 0 0 4px rgba(232, 117, 74, 0.18);
+  /* Focus */
+  --focus-ring: rgba(184, 92, 56, 0.6);
+  --focus-shadow: 0 0 0 4px rgba(184, 92, 56, 0.2);
 
-  --overlay: rgba(26, 12, 10, 0.55);
+  /* Overlay */
+  --overlay: rgba(0, 0, 0, 0.72);
 
-  --danger: #b42318;
-  --danger-bg: rgba(180, 35, 24, 0.12);
-  --success: #067647;
-  --warning: #b54708;
+  /* Status */
+  --danger: #f87171;
+  --danger-bg: rgba(239, 68, 68, 0.08);
+  --success: #4ade80;
+  --warning: #fbbf24;
 }
-

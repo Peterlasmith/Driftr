@@ -8,12 +8,12 @@
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 248, 232, 0.94);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-  color: var(--text-on-panel);
+  color: var(--text);
 }
 
 .header {
@@ -36,13 +36,14 @@
 
 .title {
   font-size: 20px;
-  font-weight: 760;
+  font-weight: 650;
+  font-family: var(--font-heading);
   letter-spacing: 0.2px;
 }
 
 .subtitle {
   margin-top: 6px;
-  color: var(--muted-on-panel);
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -58,34 +59,37 @@
 }
 
 .label {
-  font-size: 13px;
-  color: var(--muted-on-panel);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .input {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
-  color: var(--text-on-panel);
+  color: var(--text);
   outline: none;
 }
 
 .input:focus {
-  border-color: rgba(232, 117, 74, 0.75);
+  border-color: rgba(212, 121, 90, 0.6);
   box-shadow: var(--focus-shadow);
 }
 
 .primaryButton {
   appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: none;
   background: var(--accent);
   color: var(--accent-contrast);
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .primaryButton:hover {
@@ -110,23 +114,23 @@
 
 .secondaryButton {
   appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .secondaryButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .divider {
   position: relative;
   text-align: center;
-  color: var(--muted-on-panel);
+  color: var(--muted);
   font-size: 12px;
   margin: 4px 0;
   padding: 6px 0;
@@ -145,16 +149,16 @@
 
 .errorBanner {
   padding: 10px 12px;
-  border: 1px solid rgba(180, 35, 24, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   background: var(--danger-bg);
-  border-radius: 12px;
-  color: var(--text-on-panel);
+  border-radius: 8px;
+  color: var(--text);
 }
 
 .footer {
   padding: 14px 16px 16px;
   border-top: 1px solid var(--border);
-  color: var(--muted-on-panel);
+  color: var(--muted);
   font-size: 13px;
 }
 

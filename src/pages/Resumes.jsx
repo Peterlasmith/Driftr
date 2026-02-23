@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "./Resumes.module.css";
 import shell from "../App.module.css";
 import { useAuth } from "../auth/AuthProvider";
-import AppHeader from "../components/AppHeader";
 import ResumeAnalysisPanel from "../components/ResumeAnalysisPanel";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import { subscribeToApplications } from "../services/applications";
@@ -35,7 +34,7 @@ function formatBytes(bytes) {
 }
 
 export default function Resumes() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [resumes, setResumes] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loadingResumes, setLoadingResumes] = useState(true);
@@ -107,19 +106,10 @@ export default function Resumes() {
     return (rows || []).find((r) => r.id === analysisResumeId) || null;
   }, [rows, analysisResumeId]);
 
-  async function handleLogout() {
-    setError("");
-    try {
-      await logout();
-    } catch (err) {
-      setError(err?.message || "Failed to log out.");
-    }
-  }
-
   async function handleDelete(resume) {
     const count = perf.byId.get(resume.id)?.applications ?? 0;
     const ok = window.confirm(
-      `Delete “${resume.versionName || "this resume"}”?\n\nThis will unlink it from ${count} application(s). Those applications will keep a legacy text label.`
+      `Delete "${resume.versionName || "this resume"}"?\n\nThis will unlink it from ${count} application(s). Those applications will keep a legacy text label.`
     );
     if (!ok) return;
     setError("");
@@ -190,175 +180,64 @@ export default function Resumes() {
   }
 
   return (
-    <div className={shell.page}>
-      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
+    <>
+      <div className={shell.pgHeader}>
+        <div className={shell.pgTitle}>Resumes</div>
+        <div className={shell.pgActions}>
+          <button
+            className={shell.primaryButton}
+            onClick={() => setUploadOpen(true)}
+            type="button"
+          >
+            + Upload Resume
+          </button>
+        </div>
+      </div>
 
-      <main className={shell.main}>
-        <section className={shell.panel}>
-          <div className={shell.panelHeader}>
-            <div className={shell.panelHeaderMain}>
-              <div className={shell.panelTitle}>Resumes</div>
-              <div className={shell.panelMeta}>Performance updates as you log application outcomes</div>
-            </div>
-            <div className={shell.panelHeaderActions}>
-              <button
-                className={shell.primaryButton}
-                onClick={() => setUploadOpen(true)}
-                type="button"
-              >
-                + Upload Resume
-              </button>
+      <div className={shell.pgBody}>
+        {error ? <div className={shell.errorBanner}>{error}</div> : null}
+
+        {legacyResumeLabels.length > 0 ? (
+          <div className={styles.legacyBanner}>
+            <div className={styles.legacyTitle}>Legacy resume labels found</div>
+            <div className={styles.legacySub}>
+              {legacyResumeLabels.length} label(s) exist on older applications. Upload a resume file
+              and select it in those applications to start tracking performance.
             </div>
           </div>
+        ) : null}
 
-          {error ? <div className={shell.errorBanner}>{error}</div> : null}
-          {legacyResumeLabels.length > 0 ? (
-            <div className={styles.legacyBanner}>
-              <div className={styles.legacyTitle}>Legacy resume labels found</div>
-              <div className={styles.legacySub}>
-                {legacyResumeLabels.length} label(s) exist on older applications. Upload a resume file
-                and select it in those applications to start tracking performance.
-              </div>
-            </div>
-          ) : null}
-
-          {loadingResumes ? (
-            <div className={styles.loading}>
-              <div className={styles.loadingTitle}>Loading resumes…</div>
-              <div className={styles.loadingSub}>Fetching from Firestore</div>
-            </div>
-          ) : rows.length === 0 ? (
-            <div className={styles.empty}>
-              <div className={styles.emptyTitle}>No resumes yet</div>
-              <div className={styles.emptySub}>Upload your first resume to get started.</div>
-              <button className={styles.emptyButton} onClick={() => setUploadOpen(true)}>
-                + Upload Resume
-              </button>
-            </div>
-          ) : (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Resume</th>
-                    <th>Uploaded</th>
-                    <th className={styles.right}>Applications</th>
-                    <th className={styles.right}>Response Rate</th>
-                    <th className={styles.right}>File</th>
-                    <th className={styles.right}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id} className={r.isBest ? styles.bestRow : ""}>
-                      <td>
-                        <div className={styles.resumeCell}>
-                          <div className={styles.resumeName}>
-                            {r.versionName || "Untitled resume"}
-                            {r.isBest ? <span className={styles.bestBadge}>Best</span> : null}
-                            <span
-                              className={styles.aiWrap}
-                              onMouseEnter={() => setHoveredAiId(r.id)}
-                              onMouseLeave={() => setHoveredAiId("")}
-                            >
-                              <button
-                                className={[
-                                  styles.aiBadge,
-                                  r.analysisResult ? styles.aiBadgeReady : "",
-                                  analysisBusyById.get(r.id) ? styles.aiBadgeBusy : ""
-                                ].join(" ")}
-                                type="button"
-                                onClick={() => handleOpenAnalysis(r)}
-                                aria-busy={analysisBusyById.get(r.id) ? "true" : "false"}
-                                aria-label={
-                                  r.analysisResult ? "Open AI analysis" : "Analyze this resume with AI"
-                                }
-                              >
-                                AI
-                              </button>
-                              {hoveredAiId === r.id ? (
-                                <div className={styles.aiTooltip} role="tooltip">
-                                  <div className={styles.aiTooltipTitle}>
-                                    {analysisBusyById.get(r.id)
-                                      ? "Analyzing…"
-                                      : r.analysisResult
-                                        ? "AI Summary"
-                                        : "AI Analysis"}
-                                  </div>
-                                  <div
-                                    className={[
-                                      styles.aiTooltipBody,
-                                      analysisErrorById.get(r.id) ? styles.aiTooltipError : ""
-                                    ].join(" ")}
-                                  >
-                                    {analysisErrorById.get(r.id)
-                                      ? analysisErrorById.get(r.id)
-                                      : analysisBusyById.get(r.id)
-                                        ? "Extracting text and generating insights."
-                                        : r.analysisResult?.summary
-                                          ? r.analysisResult.summary
-                                          : "Click to generate an AI assessment."}
-                                  </div>
-                                </div>
-                              ) : null}
-                            </span>
-                          </div>
-                          <div className={styles.resumeMeta}>{r.fileName || "—"}</div>
-                        </div>
-                      </td>
-                      <td>{formatDate(r.uploadDate)}</td>
-                      <td className={styles.right}>{r.appsCount}</td>
-                      <td className={styles.right}>
-                        {r.responseRate == null ? (
-                          <span className={styles.muted}>Not enough data</span>
-                        ) : (
-                          <span className={styles.rate}>{r.responseRate}%</span>
-                        )}
-                      </td>
-                      <td className={styles.right}>
-                        <span className={styles.muted}>
-                          {r.fileType ? r.fileType.split("/").pop()?.toUpperCase() : "—"} ·{" "}
-                          {formatBytes(r.fileSize)}
-                        </span>
-                      </td>
-                      <td className={styles.right}>
-                        <div className={styles.actions}>
-                          <a
-                            className={styles.secondaryButton}
-                            href={r.fileUrl || "#"}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-disabled={!r.fileUrl ? "true" : "false"}
-                            onClick={(e) => {
-                              if (!r.fileUrl) e.preventDefault();
-                            }}
-                          >
-                            Download
-                          </a>
-                          <button
-                            className={styles.secondaryButton}
-                            onClick={() => handleRename(r)}
-                            type="button"
-                          >
-                            Rename
-                          </button>
-                          <button
-                            className={styles.dangerButton}
-                            onClick={() => handleDelete(r)}
-                            type="button"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </main>
+        {loadingResumes ? (
+          <div className={styles.loading}>
+            <div className={styles.loadingTitle}>Loading resumes…</div>
+            <div className={styles.loadingSub}>Fetching from Firestore</div>
+          </div>
+        ) : rows.length === 0 ? (
+          <div className={styles.empty}>
+            <div className={styles.emptyTitle}>No resumes yet</div>
+            <div className={styles.emptySub}>Upload your first resume to get started.</div>
+            <button className={styles.emptyButton} onClick={() => setUploadOpen(true)}>
+              + Upload Resume
+            </button>
+          </div>
+        ) : (
+          <div className={styles.grid}>
+            {rows.map((r) => (
+              <ResumeCard
+                key={r.id}
+                r={r}
+                hoveredAiId={hoveredAiId}
+                setHoveredAiId={setHoveredAiId}
+                analysisBusyById={analysisBusyById}
+                analysisErrorById={analysisErrorById}
+                onAnalysis={handleOpenAnalysis}
+                onRename={handleRename}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <ResumeUploadModal
         open={uploadOpen}
@@ -381,6 +260,132 @@ export default function Resumes() {
           handleFeedback(analysisResumeId, value);
         }}
       />
+    </>
+  );
+}
+
+function ResumeCard({
+  r,
+  hoveredAiId,
+  setHoveredAiId,
+  analysisBusyById,
+  analysisErrorById,
+  onAnalysis,
+  onRename,
+  onDelete
+}) {
+  return (
+    <div className={`${styles.card} ${r.isBest ? styles.cardBest : ""}`}>
+      {/* Document preview area */}
+      <div className={styles.cardPreview}>
+        <svg width="32" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 2h18l10 10v24a2 2 0 01-2 2H2a2 2 0 01-2-2V4a2 2 0 012-2z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2"/>
+          <path d="M20 2v10h10" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2"/>
+          <rect x="5" y="16" width="16" height="1.2" rx="0.6" fill="rgba(255,255,255,0.1)"/>
+          <rect x="5" y="20" width="12" height="1.2" rx="0.6" fill="rgba(255,255,255,0.07)"/>
+          <rect x="5" y="24" width="18" height="1.2" rx="0.6" fill="rgba(255,255,255,0.1)"/>
+          <rect x="5" y="28" width="10" height="1.2" rx="0.6" fill="rgba(255,255,255,0.07)"/>
+        </svg>
+        <div className={styles.cardFileType}>
+          {r.fileType ? r.fileType.split("/").pop()?.toUpperCase() : "PDF"}
+        </div>
+        {r.isBest ? <span className={styles.bestBadge}>Best</span> : null}
+      </div>
+
+      {/* Info section */}
+      <div className={styles.cardInfo}>
+        <div className={styles.cardName}>
+          {r.versionName || "Untitled resume"}
+          <span
+            className={styles.aiWrap}
+            onMouseEnter={() => setHoveredAiId(r.id)}
+            onMouseLeave={() => setHoveredAiId("")}
+          >
+            <button
+              className={[
+                styles.aiBadge,
+                r.analysisResult ? styles.aiBadgeReady : "",
+                analysisBusyById.get(r.id) ? styles.aiBadgeBusy : ""
+              ].join(" ")}
+              type="button"
+              onClick={() => onAnalysis(r)}
+              aria-busy={analysisBusyById.get(r.id) ? "true" : "false"}
+              aria-label={
+                r.analysisResult ? "Open AI analysis" : "Analyze this resume with AI"
+              }
+            >
+              AI
+            </button>
+            {hoveredAiId === r.id ? (
+              <div className={styles.aiTooltip} role="tooltip">
+                <div className={styles.aiTooltipTitle}>
+                  {analysisBusyById.get(r.id)
+                    ? "Analyzing…"
+                    : r.analysisResult
+                      ? "AI Summary"
+                      : "AI Analysis"}
+                </div>
+                <div
+                  className={[
+                    styles.aiTooltipBody,
+                    analysisErrorById.get(r.id) ? styles.aiTooltipError : ""
+                  ].join(" ")}
+                >
+                  {analysisErrorById.get(r.id)
+                    ? analysisErrorById.get(r.id)
+                    : analysisBusyById.get(r.id)
+                      ? "Extracting text and generating insights."
+                      : r.analysisResult?.summary
+                        ? r.analysisResult.summary
+                        : "Click to generate an AI assessment."}
+                </div>
+              </div>
+            ) : null}
+          </span>
+        </div>
+        <div className={styles.cardMeta}>{r.fileName || "—"}</div>
+
+        <div className={styles.cardStats}>
+          <div className={styles.cardStat}>
+            <div className={styles.cardStatValue}>{r.appsCount}</div>
+            <div className={styles.cardStatLabel}>Applications</div>
+          </div>
+          <div className={styles.cardStat}>
+            <div className={styles.cardStatValue}>
+              {r.responseRate == null ? "—" : `${r.responseRate}%`}
+            </div>
+            <div className={styles.cardStatLabel}>Response Rate</div>
+          </div>
+          <div className={styles.cardStat}>
+            <div className={styles.cardStatValue}>{formatBytes(r.fileSize)}</div>
+            <div className={styles.cardStatLabel}>Size</div>
+          </div>
+        </div>
+
+        <div className={styles.cardDate}>Uploaded {formatDate(r.uploadDate)}</div>
+      </div>
+
+      {/* Actions */}
+      <div className={styles.cardActions}>
+        <a
+          className={styles.cardBtn}
+          href={r.fileUrl || "#"}
+          target="_blank"
+          rel="noreferrer"
+          aria-disabled={!r.fileUrl ? "true" : "false"}
+          onClick={(e) => {
+            if (!r.fileUrl) e.preventDefault();
+          }}
+        >
+          Download
+        </a>
+        <button className={styles.cardBtn} onClick={() => onRename(r)} type="button">
+          Rename
+        </button>
+        <button className={`${styles.cardBtn} ${styles.cardBtnDanger}`} onClick={() => onDelete(r)} type="button">
+          Delete
+        </button>
+      </div>
     </div>
   );
 }

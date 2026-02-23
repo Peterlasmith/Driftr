@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import AppHeader from "../components/AppHeader";
-import styles from "../App.module.css";
+import shell from "../App.module.css";
 import pageStyles from "./Archive.module.css";
 import {
   deleteApplication,
@@ -30,7 +29,7 @@ function formatDate(dateValue) {
 }
 
 export default function Archive() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [archived, setArchived] = useState([]);
@@ -108,116 +107,100 @@ export default function Archive() {
     }
   }
 
-  async function handleLogout() {
-    setError("");
-    try {
-      await logout();
-    } catch (err) {
-      setError(err?.message || "Failed to log out.");
-    }
-  }
-
   return (
-    <div className={styles.page}>
-      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
+    <>
+      <div className={shell.pgHeader}>
+        <div className={shell.pgTitle}>Archive</div>
+        <div className={shell.pgActions}>
+          <div className={pageStyles.counter}>Archived: {archived.length}</div>
+        </div>
+      </div>
 
-      <main className={styles.main}>
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div className={styles.panelHeaderMain}>
-              <div className={styles.panelTitle}>Archive</div>
-              <div className={styles.panelMeta}>Rejected applications only</div>
-            </div>
-            <div className={styles.panelHeaderActions}>
-              <div className={pageStyles.counter}>Archived rejected: {archived.length}</div>
-            </div>
+      <div className={shell.pgBody}>
+        {error ? <div className={shell.errorBanner}>{error}</div> : null}
+
+        <div className={pageStyles.filters}>
+          <input
+            className={pageStyles.input}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search title or company"
+          />
+          <select
+            className={pageStyles.input}
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+          >
+            <option value="ALL">All reasons</option>
+            {REJECTION_REASON_OPTIONS.map((tag) => (
+              <option key={tag} value={tag}>
+                {REASON_LABELS[tag] || tag}
+              </option>
+            ))}
+          </select>
+          <input
+            className={pageStyles.input}
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            max={toDate || undefined}
+          />
+          <input
+            className={pageStyles.input}
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            min={fromDate || undefined}
+          />
+        </div>
+
+        {loading ? (
+          <div className={pageStyles.empty}>Loading archive...</div>
+        ) : filteredRows.length === 0 ? (
+          <div className={pageStyles.empty}>No archived applications match the current filters.</div>
+        ) : (
+          <div className={pageStyles.tableWrap}>
+            <table className={pageStyles.table}>
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Company</th>
+                  <th>Date Applied</th>
+                  <th>Archived</th>
+                  <th>Reasons</th>
+                  <th>Notes</th>
+                  <th className={pageStyles.right}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRows.map((row) => {
+                  const tags = Array.isArray(row.rejectionReasonTags) ? row.rejectionReasonTags : [];
+                  return (
+                    <tr key={row.id}>
+                      <td>{row.jobTitle || "-"}</td>
+                      <td>{row.company || "-"}</td>
+                      <td>{formatDate(row.dateApplied)}</td>
+                      <td>{formatDate(row.archivedAt)}</td>
+                      <td>{tags.length ? tags.map((tag) => REASON_LABELS[tag] || tag).join(", ") : "-"}</td>
+                      <td>{row.rejectionReasonNote || "-"}</td>
+                      <td className={pageStyles.right}>
+                        <div className={pageStyles.actions}>
+                          <button className={pageStyles.secondaryButton} onClick={() => handleUnarchive(row.id)}>
+                            Unarchive
+                          </button>
+                          <button className={pageStyles.dangerButton} onClick={() => handleDelete(row.id)}>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-
-          {error ? <div className={styles.errorBanner}>{error}</div> : null}
-
-          <div className={pageStyles.filters}>
-            <input
-              className={pageStyles.input}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search title or company"
-            />
-            <select
-              className={pageStyles.input}
-              value={selectedTag}
-              onChange={(e) => setSelectedTag(e.target.value)}
-            >
-              <option value="ALL">All reasons</option>
-              {REJECTION_REASON_OPTIONS.map((tag) => (
-                <option key={tag} value={tag}>
-                  {REASON_LABELS[tag] || tag}
-                </option>
-              ))}
-            </select>
-            <input
-              className={pageStyles.input}
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              max={toDate || undefined}
-            />
-            <input
-              className={pageStyles.input}
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              min={fromDate || undefined}
-            />
-          </div>
-
-          {loading ? (
-            <div className={pageStyles.empty}>Loading archive...</div>
-          ) : filteredRows.length === 0 ? (
-            <div className={pageStyles.empty}>No archived applications match the current filters.</div>
-          ) : (
-            <div className={pageStyles.tableWrap}>
-              <table className={pageStyles.table}>
-                <thead>
-                  <tr>
-                    <th>Role</th>
-                    <th>Company</th>
-                    <th>Date Applied</th>
-                    <th>Archived</th>
-                    <th>Reasons</th>
-                    <th>Notes</th>
-                    <th className={pageStyles.right}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRows.map((row) => {
-                    const tags = Array.isArray(row.rejectionReasonTags) ? row.rejectionReasonTags : [];
-                    return (
-                      <tr key={row.id}>
-                        <td>{row.jobTitle || "-"}</td>
-                        <td>{row.company || "-"}</td>
-                        <td>{formatDate(row.dateApplied)}</td>
-                        <td>{formatDate(row.archivedAt)}</td>
-                        <td>{tags.length ? tags.map((tag) => REASON_LABELS[tag] || tag).join(", ") : "-"}</td>
-                        <td>{row.rejectionReasonNote || "-"}</td>
-                        <td className={pageStyles.right}>
-                          <div className={pageStyles.actions}>
-                            <button className={pageStyles.secondaryButton} onClick={() => handleUnarchive(row.id)}>
-                              Unarchive
-                            </button>
-                            <button className={pageStyles.dangerButton} onClick={() => handleDelete(row.id)}>
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </main>
-    </div>
+        )}
+      </div>
+    </>
   );
 }
