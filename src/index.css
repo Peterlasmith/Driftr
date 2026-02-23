@@ -1,25 +1,19 @@
 @import "./styles/theme.css";
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 html,
 body {
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  background: radial-gradient(
-      900px 520px at 18% 12%,
-      rgba(232, 117, 74, 0.22),
-      transparent 62%
-    ),
-    radial-gradient(780px 520px at 86% 0%, rgba(216, 156, 140, 0.18), transparent 66%),
-    var(--bg);
+  font-family: var(--font-body);
+  background: var(--bg);
   color: var(--text);
 }
 

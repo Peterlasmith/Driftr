@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import StatsCards from "./components/StatsCards";
 import ApplicationTable from "./components/ApplicationTable";
 import ApplicationForm from "./components/ApplicationForm";
 import {
@@ -14,42 +13,13 @@ import {
 } from "./services/applications";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
-import AppHeader from "./components/AppHeader";
 import { subscribeToResumes } from "./services/resumes";
 import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
 import RejectionReasonModal from "./components/RejectionReasonModal";
-
-function daysSince(dateApplied) {
-  if (!dateApplied) return null;
-  const start = new Date(dateApplied);
-  const today = new Date();
-  start.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-  const diffMs = today.getTime() - start.getTime();
-  return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-}
-
-function calcStats(applications) {
-  const total = applications.length;
-  const active = applications.filter(
-    (a) => a.status !== "Rejected" && a.status !== "Offer"
-  ).length;
-  const responded = applications.filter((a) => a.status !== "Applied").length;
-  const responseRate = total === 0 ? 0 : Math.round((responded / total) * 100);
-
-  const dayValues = applications
-    .map((a) => daysSince(a.dateApplied))
-    .filter((n) => typeof n === "number");
-  const avgDaysSince =
-    dayValues.length === 0
-      ? 0
-      : Math.round(dayValues.reduce((sum, n) => sum + n, 0) / dayValues.length);
-
-  return { total, active, responseRate, avgDaysSince };
-}
+import { calcStats } from "./utils/statsCalc";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -196,56 +166,33 @@ export default function Dashboard() {
     setFormOpen(true);
   }
 
-  async function handleLogout() {
-    setError("");
-    try {
-      await logout();
-    } catch (err) {
-      setError(err?.message || "Failed to log out.");
-    }
-  }
-
   return (
-    <div className={styles.page}>
-      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
+    <>
+      <div className={styles.pgHeader}>
+        <div className={styles.pgTitle}>Applications</div>
+        <div className={styles.pgActions}>
+          <button className={styles.primaryButton} onClick={openAdd} type="button">
+            + Add application
+          </button>
+        </div>
+      </div>
 
-      <main className={styles.main}>
-        <StatsCards
-          total={stats.total}
-          responseRate={stats.responseRate}
-          active={stats.active}
-          avgDaysSince={stats.avgDaysSince}
+      <div className={styles.pgBody}>
+        {error ? <div className={styles.errorBanner}>{error}</div> : null}
+
+        <ApplicationTable
+          applications={visibleApplications}
+          rejectedApplications={rejectedApplications}
+          rejectedCollapsed={rejectedCollapsed}
+          onToggleRejectedCollapse={() => setRejectedCollapsed((value) => !value)}
+          loading={loading}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onStatusChange={handleStatusChange}
+          onArchive={handleArchive}
+          onCaptureRejection={openRejectionReasonModal}
         />
-
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div className={styles.panelHeaderMain}>
-              <div className={styles.panelTitle}>Applications</div>
-              <div className={styles.panelMeta}>Sorted by newest date applied</div>
-            </div>
-            <div className={styles.panelHeaderActions}>
-              <button className={styles.primaryButton} onClick={openAdd} type="button">
-                + Add application
-              </button>
-            </div>
-          </div>
-
-          {error ? <div className={styles.errorBanner}>{error}</div> : null}
-
-          <ApplicationTable
-            applications={visibleApplications}
-            rejectedApplications={rejectedApplications}
-            rejectedCollapsed={rejectedCollapsed}
-            onToggleRejectedCollapse={() => setRejectedCollapsed((value) => !value)}
-            loading={loading}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-            onStatusChange={handleStatusChange}
-            onArchive={handleArchive}
-            onCaptureRejection={openRejectionReasonModal}
-          />
-        </section>
-      </main>
+      </div>
 
       <ApplicationForm
         open={formOpen}
@@ -281,6 +228,6 @@ export default function Dashboard() {
         resumes={resumes}
         onClose={() => setImportOpen(false)}
       />
-    </div>
+    </>
   );
 }

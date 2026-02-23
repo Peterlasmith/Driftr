@@ -11,12 +11,12 @@
 .modal {
   width: 100%;
   max-width: 560px;
-  background: linear-gradient(180deg, rgba(255, 248, 232, 0.98), rgba(255, 248, 232, 0.92));
-  border: 1px solid var(--border);
+  background: var(--panel-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  color: var(--text-on-panel);
+  color: var(--text);
 }
 
 .header {
@@ -28,14 +28,14 @@
 }
 
 .title {
-  font-weight: 780;
+  font-weight: 650;
 }
 
 .iconButton {
   appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
   width: 34px;
   height: 34px;
   border-radius: 10px;
@@ -43,7 +43,7 @@
 }
 
 .iconButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .iconButton:focus-visible {
@@ -63,36 +63,39 @@
 }
 
 .label {
-  font-size: 12px;
-  color: var(--muted-on-panel);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .hint {
   font-size: 12px;
-  color: var(--muted-on-panel);
+  color: var(--muted);
 }
 
 .input {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
-  color: var(--text-on-panel);
+  color: var(--text);
   padding: 10px 12px;
   outline: none;
 }
 
 .input:focus {
-  border-color: rgba(232, 117, 74, 0.75);
+  border-color: rgba(212, 121, 90, 0.6);
   box-shadow: var(--focus-shadow);
 }
 
 .error {
   margin-top: 2px;
   padding: 10px 12px;
-  border: 1px solid rgba(180, 35, 24, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   background: var(--danger-bg);
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 13px;
 }
 
@@ -107,18 +110,20 @@
 .secondaryButton,
 .primaryButton {
   appearance: none;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
 .primaryButton {
   background: var(--accent);
   color: var(--accent-contrast);
-  font-weight: 650;
+  font-weight: 600;
+  border-color: transparent;
 }
 
 .primaryButton:hover {
@@ -130,7 +135,7 @@
 }
 
 .secondaryButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .secondaryButton:focus-visible,
@@ -144,4 +149,3 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
-

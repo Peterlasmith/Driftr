@@ -1,56 +1,213 @@
-.grid {
+.body {
+  max-width: 620px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  padding: 14px;
+  gap: 1.8rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding-left: 2px;
 }
 
 .card {
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.52);
-  padding: 14px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* ── Form rows ── */
+.row {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
 }
 
-.cardTitle {
-  font-weight: 780;
+.row:last-child {
+  border-bottom: none;
 }
 
-.cardText {
-  color: var(--text-on-panel);
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
-.cardHint {
-  font-size: 12px;
-  color: var(--muted-on-panel);
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  font-size: 14px;
 }
 
-.archiveLink {
-  display: inline-flex;
-  width: fit-content;
+.input:focus {
+  border-color: rgba(212, 121, 90, 0.6);
+  box-shadow: var(--focus-shadow);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Toggle rows ── */
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 9px 12px;
-  border-radius: 12px;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.toggleRow:last-child {
+  border-bottom: none;
+}
+
+.toggleLabel {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.toggleSub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.toggle {
+  appearance: none;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.toggleOn {
+  background: var(--rust);
+  border-color: var(--rust);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  transition: transform 0.2s;
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(18px);
+}
+
+/* ── Account rows ── */
+.accountRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.accountRow:last-child {
+  border-bottom: none;
+}
+
+.accountLabel {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.accountSub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
   text-decoration: none;
-  color: var(--text-on-panel);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  font-weight: 650;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 
-.archiveLink:hover {
-  background: rgba(160, 73, 62, 0.12);
+.btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.archiveLink:focus-visible {
+.btnDanger {
+  border-color: rgba(239, 68, 68, 0.2);
+  color: rgba(239, 100, 100, 0.85);
+}
+
+.btnDanger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
-@media (max-width: 760px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+/* ── Coming Soon overlay ── */
+.comingSoonWrap {
+  position: relative;
+}
+
+.comingSoonOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+}
+
+.comingSoonBadge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 5px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(4px);
 }

@@ -1,55 +1,115 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AppHeader from "../components/AppHeader";
 import { useAuth } from "../auth/AuthProvider";
 import shell from "../App.module.css";
 import styles from "./Settings.module.css";
 
 export default function Settings() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [error, setError] = useState("");
 
-  async function handleLogout() {
-    setError("");
-    try {
-      await logout();
-    } catch (err) {
-      setError(err?.message || "Failed to log out.");
-    }
-  }
-
   return (
-    <div className={shell.page}>
-      <AppHeader userEmail={user?.email} onLogout={handleLogout} />
+    <>
+      <div className={shell.pgHeader}>
+        <div className={shell.pgTitle}>Settings</div>
+      </div>
 
-      <main className={shell.main}>
-        <section className={shell.panel}>
-          <div className={shell.panelHeader}>
-            <div className={shell.panelTitle}>Settings</div>
-            <div className={shell.panelMeta}>Low-frequency account and data options</div>
-          </div>
+      <div className={shell.pgBody}>
+        {error ? <div className={shell.errorBanner}>{error}</div> : null}
 
-          {error ? <div className={shell.errorBanner}>{error}</div> : null}
-
-          <div className={styles.grid}>
-            <article className={styles.card}>
-              <div className={styles.cardTitle}>Profile</div>
-              <div className={styles.cardText}>Signed in as {user?.email || "Unknown user"}</div>
-              <div className={styles.cardHint}>More account preferences can be added here later.</div>
-            </article>
-
-            <article className={styles.card}>
-              <div className={styles.cardTitle}>Data Management</div>
-              <div className={styles.cardText}>
-                Archived rejected applications are hidden from primary navigation.
+        <div className={styles.body}>
+          {/* Profile section */}
+          <section className={styles.section}>
+            <div className={styles.sectionTitle}>Profile</div>
+            <div className={styles.card}>
+              <div className={styles.row}>
+                <label className={styles.label}>Full Name</label>
+                <input className={styles.input} type="text" placeholder="Your name" />
               </div>
-              <Link className={styles.archiveLink} to="/archive">
-                View archived applications
-              </Link>
-            </article>
-          </div>
-        </section>
-      </main>
+              <div className={styles.row}>
+                <label className={styles.label}>Email</label>
+                <input
+                  className={styles.input}
+                  type="email"
+                  value={user?.email || ""}
+                  readOnly
+                  disabled
+                />
+              </div>
+              <div className={styles.row}>
+                <label className={styles.label}>Target Role</label>
+                <input className={styles.input} type="text" placeholder="e.g. Frontend Engineer" />
+              </div>
+            </div>
+          </section>
+
+          {/* Notifications section — Coming Soon */}
+          <section className={styles.section}>
+            <div className={styles.sectionTitle}>Notifications</div>
+            <div className={styles.comingSoonWrap}>
+              <div className={styles.card} style={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none" }}>
+                <ToggleRow label="Weekly Digest" sub="Summary of applications and response rates" />
+                <ToggleRow label="Stale Alerts" sub="Remind you about applications with no updates" />
+                <ToggleRow label="AI Insights" sub="Get notified when new resume analysis is ready" />
+              </div>
+              <div className={styles.comingSoonOverlay}>
+                <span className={styles.comingSoonBadge}>Coming Soon</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Account section */}
+          <section className={styles.section}>
+            <div className={styles.sectionTitle}>Account</div>
+            <div className={styles.card}>
+              <div className={styles.accountRow}>
+                <div>
+                  <div className={styles.accountLabel}>Archived Applications</div>
+                  <div className={styles.accountSub}>View rejected applications moved to archive</div>
+                </div>
+                <Link className={styles.btn} to="/archive">
+                  View Archive
+                </Link>
+              </div>
+              <div className={styles.accountRow}>
+                <div>
+                  <div className={styles.accountLabel}>Export Data</div>
+                  <div className={styles.accountSub}>Download all your applications as CSV</div>
+                </div>
+                <button className={styles.btn} type="button">Export CSV</button>
+              </div>
+              <div className={styles.accountRow}>
+                <div>
+                  <div className={styles.accountLabel}>Delete Account</div>
+                  <div className={styles.accountSub}>Permanently remove your account and data</div>
+                </div>
+                <button className={`${styles.btn} ${styles.btnDanger}`} type="button">Delete</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ToggleRow({ label, sub }) {
+  const [on, setOn] = useState(false);
+  return (
+    <div className={styles.toggleRow}>
+      <div>
+        <div className={styles.toggleLabel}>{label}</div>
+        <div className={styles.toggleSub}>{sub}</div>
+      </div>
+      <button
+        className={`${styles.toggle} ${on ? styles.toggleOn : ""}`}
+        onClick={() => setOn(!on)}
+        type="button"
+        role="switch"
+        aria-checked={on}
+      >
+        <span className={styles.toggleKnob} />
+      </button>
     </div>
   );
 }

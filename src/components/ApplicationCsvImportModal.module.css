@@ -13,11 +13,11 @@
   max-width: 940px;
   max-height: calc(100vh - 36px);
   overflow: auto;
-  background: linear-gradient(180deg, rgba(255, 248, 232, 0.98), rgba(255, 248, 232, 0.92));
-  border: 1px solid var(--border);
+  background: var(--panel-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  color: var(--text-on-panel);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  color: var(--text);
 }
 
 .header {
@@ -30,19 +30,19 @@
 }
 
 .title {
-  font-weight: 780;
+  font-weight: 650;
 }
 
 .subtle {
   font-size: 12px;
-  color: var(--muted-on-panel);
+  color: var(--muted);
 }
 
 .iconButton {
   appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
   width: 34px;
   height: 34px;
   border-radius: 10px;
@@ -50,7 +50,7 @@
 }
 
 .iconButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .iconButton:focus-visible {
@@ -70,31 +70,34 @@
 }
 
 .label {
-  font-size: 12px;
-  color: var(--muted-on-panel);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .required {
-  color: rgba(160, 73, 62, 0.95);
+  color: var(--rust-light);
 }
 
 .hint {
   font-size: 12px;
-  color: var(--muted-on-panel);
+  color: var(--muted);
 }
 
 .input {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
-  color: var(--text-on-panel);
+  color: var(--text);
   padding: 10px 12px;
   outline: none;
 }
 
 .input:focus {
-  border-color: rgba(232, 117, 74, 0.75);
+  border-color: rgba(212, 121, 90, 0.6);
   box-shadow: var(--focus-shadow);
 }
 
@@ -102,15 +105,15 @@
 .previewWrap,
 .resultWrap {
   padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
   display: grid;
   gap: 10px;
 }
 
 .sectionTitle {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .mapGrid {
@@ -127,16 +130,17 @@
 
 .metric {
   font-size: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
 }
 
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .table {
@@ -151,6 +155,13 @@
   padding: 8px 10px;
   vertical-align: top;
   font-size: 13px;
+  color: var(--text);
+}
+
+.table th {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .table tr:last-child td {
@@ -159,9 +170,9 @@
 
 .error {
   padding: 10px 12px;
-  border: 1px solid rgba(180, 35, 24, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   background: var(--danger-bg);
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 13px;
 }
 
@@ -183,18 +194,20 @@
 .secondaryButton,
 .primaryButton {
   appearance: none;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
 .primaryButton {
   background: var(--accent);
   color: var(--accent-contrast);
-  font-weight: 650;
+  font-weight: 600;
+  border-color: transparent;
 }
 
 .primaryButton:hover {
@@ -206,7 +219,7 @@
 }
 
 .secondaryButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .secondaryButton:focus-visible,

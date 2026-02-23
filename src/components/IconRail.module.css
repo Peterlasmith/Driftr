@@ -1,0 +1,120 @@
+.rail {
+  width: 60px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--rail-bg);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 0;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  background: var(--rust);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.logoImg {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  /* Tint to white so the rust SVG shows on the rust background */
+  filter: brightness(0) invert(1);
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.railBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: rgba(255, 255, 255, 0.28);
+  border: none;
+  background: transparent;
+  position: relative;
+  text-decoration: none;
+}
+
+.railBtn:visited {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.railBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.railBtn.on {
+  background: rgba(184, 92, 56, 0.18);
+  color: var(--rust-light);
+}
+
+.railBtn.on:visited {
+  color: var(--rust-light);
+}
+
+.railBtn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  background: rgba(20, 12, 8, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-family: var(--font-body);
+}
+
+.railBtn:hover .tip {
+  opacity: 1;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--rust);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}

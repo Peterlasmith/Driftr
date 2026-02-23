@@ -2,42 +2,44 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 10px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
+  padding: 0 0 1rem;
 }
 
 .input {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
-  color: var(--text-on-panel);
+  color: var(--text);
   padding: 10px 12px;
   outline: none;
+  color-scheme: dark;
 }
 
 .input:focus {
-  border-color: rgba(232, 117, 74, 0.75);
+  border-color: rgba(212, 121, 90, 0.6);
   box-shadow: var(--focus-shadow);
 }
 
 .counter {
   font-size: 12px;
-  color: var(--muted-on-panel);
-  background: rgba(160, 73, 62, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 9px 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
 .empty {
-  padding: 24px 14px 28px;
-  color: var(--muted-on-panel);
+  padding: 24px 0 28px;
+  color: var(--muted);
 }
 
 .tableWrap {
   width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .table {
@@ -51,14 +53,17 @@
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
+  color: var(--text);
 }
 
 .table th {
   text-align: left;
-  font-size: 12px;
-  color: var(--muted-on-panel);
-  font-weight: 650;
-  background: rgba(160, 73, 62, 0.08);
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .right {
@@ -73,25 +78,27 @@
 .secondaryButton,
 .dangerButton {
   appearance: none;
-  border-radius: 12px;
-  padding: 8px 10px;
+  border-radius: 8px;
+  padding: 7px 10px;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(160, 73, 62, 0.08);
-  color: var(--text-on-panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .secondaryButton:hover {
-  background: rgba(160, 73, 62, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .dangerButton {
-  border-color: rgba(180, 35, 24, 0.35);
-  background: rgba(180, 35, 24, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: rgba(239, 100, 100, 0.85);
 }
 
 .dangerButton:hover {
-  background: rgba(180, 35, 24, 0.14);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 @media (max-width: 900px) {
