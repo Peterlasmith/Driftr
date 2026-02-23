@@ -16,7 +16,6 @@ import styles from "./App.module.css";
 import { subscribeToResumes } from "./services/resumes";
 import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
 import RejectionReasonModal from "./components/RejectionReasonModal";
-import { calcStats } from "./utils/statsCalc";
 
 export default function Dashboard() {
   const { user } = useAuth();

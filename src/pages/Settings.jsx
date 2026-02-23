@@ -6,7 +6,7 @@ import styles from "./Settings.module.css";
 
 export default function Settings() {
   const { user } = useAuth();
-  const [error, setError] = useState("");
+  const [error] = useState("");
 
   return (
     <>
