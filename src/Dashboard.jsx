@@ -44,7 +44,6 @@ export default function Dashboard() {
     () => nonArchivedApplications.filter((app) => app.status === "Rejected"),
     [nonArchivedApplications]
   );
-  const stats = useMemo(() => calcStats(nonArchivedApplications), [nonArchivedApplications]);
 
   useEffect(() => {
     if (!user?.uid) return;
