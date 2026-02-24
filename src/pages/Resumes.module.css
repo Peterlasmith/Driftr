@@ -304,6 +304,139 @@
   font-size: 12px;
 }
 
+/* ── Rename modal ── */
+.renameBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 17, 0.68);
+  backdrop-filter: blur(5px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 120;
+}
+
+.renameModal {
+  width: min(100%, 460px);
+  border-radius: 14px;
+  background: var(--panel-elevated);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.renameHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.renameTitle {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.renameClose {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.renameClose:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.renameBody {
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.renameField {
+  display: grid;
+  gap: 6px;
+}
+
+.renameLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.renameInput {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.renameInput:focus {
+  border-color: rgba(212, 121, 90, 0.4);
+  box-shadow: 0 0 0 3px rgba(212, 121, 90, 0.12);
+}
+
+.renameError {
+  color: rgba(239, 100, 100, 0.95);
+  font-size: 12px;
+}
+
+.renameFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.renameBtnSecondary,
+.renameBtnPrimary {
+  appearance: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.renameBtnSecondary {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--border);
+}
+
+.renameBtnSecondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.renameBtnPrimary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.renameBtnPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.renameBtnSecondary:disabled,
+.renameBtnPrimary:disabled,
+.renameClose:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .grid {

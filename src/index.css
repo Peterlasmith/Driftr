@@ -43,3 +43,10 @@ select,
 textarea {
   font: inherit;
 }
+
+/* Keep native select popup menus readable on browsers/OSes that ignore dark control styling. */
+select option,
+select optgroup {
+  color: #1c1209;
+  background: #fff;
+}

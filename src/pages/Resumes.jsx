@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Resumes.module.css";
 import shell from "../App.module.css";
 import { useAuth } from "../auth/AuthProvider";
@@ -45,6 +45,12 @@ export default function Resumes() {
   const [analysisResumeId, setAnalysisResumeId] = useState("");
   const [analysisBusyById, setAnalysisBusyById] = useState(() => new Map());
   const [analysisErrorById, setAnalysisErrorById] = useState(() => new Map());
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameSaving, setRenameSaving] = useState(false);
+  const [renameError, setRenameError] = useState("");
+  const renameInputRef = useRef(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -106,6 +112,11 @@ export default function Resumes() {
     return (rows || []).find((r) => r.id === analysisResumeId) || null;
   }, [rows, analysisResumeId]);
 
+  useEffect(() => {
+    if (!renameOpen) return;
+    requestAnimationFrame(() => renameInputRef.current?.focus?.());
+  }, [renameOpen]);
+
   async function handleDelete(resume) {
     const count = perf.byId.get(resume.id)?.applications ?? 0;
     const ok = window.confirm(
@@ -120,14 +131,34 @@ export default function Resumes() {
     }
   }
 
-  async function handleRename(resume) {
-    const next = window.prompt("Rename resume", resume.versionName || "");
-    if (next == null) return;
+  function handleRename(resume) {
+    setRenameTarget(resume);
+    setRenameValue(resume?.versionName || "");
+    setRenameError("");
+    setRenameSaving(false);
+    setRenameOpen(true);
+  }
+
+  function closeRenameModal(force = false) {
+    if (renameSaving && !force) return;
+    setRenameOpen(false);
+    setRenameTarget(null);
+    setRenameValue("");
+    setRenameError("");
+  }
+
+  async function handleRenameSubmit() {
+    if (!renameTarget?.id || !user?.uid) return;
+    setRenameError("");
     setError("");
+    setRenameSaving(true);
     try {
-      await renameResume(user.uid, resume.id, next);
+      await renameResume(user.uid, renameTarget.id, renameValue);
+      closeRenameModal(true);
     } catch (err) {
-      setError(err?.message || "Failed to rename resume.");
+      setRenameError(err?.message || "Failed to rename resume.");
+    } finally {
+      setRenameSaving(false);
     }
   }
 
@@ -260,6 +291,75 @@ export default function Resumes() {
           handleFeedback(analysisResumeId, value);
         }}
       />
+
+      {renameOpen ? (
+        <div
+          className={styles.renameBackdrop}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-resume-title"
+          onClick={() => closeRenameModal()}
+        >
+          <div
+            className={styles.renameModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.renameHeader}>
+              <div className={styles.renameTitle} id="rename-resume-title">
+                Rename resume
+              </div>
+              <button
+                className={styles.renameClose}
+                type="button"
+                onClick={() => closeRenameModal()}
+                aria-label="Close rename dialog"
+                disabled={renameSaving}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={styles.renameBody}>
+              <label className={styles.renameField}>
+                <div className={styles.renameLabel}>Resume name</div>
+                <input
+                  ref={renameInputRef}
+                  className={styles.renameInput}
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameSubmit();
+                    if (e.key === "Escape") closeRenameModal();
+                  }}
+                  disabled={renameSaving}
+                />
+              </label>
+              {renameError ? <div className={styles.renameError}>{renameError}</div> : null}
+            </div>
+
+            <div className={styles.renameFooter}>
+              <button
+                className={styles.renameBtnSecondary}
+                type="button"
+                onClick={() => closeRenameModal()}
+                disabled={renameSaving}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.renameBtnPrimary}
+                type="button"
+                onClick={handleRenameSubmit}
+                disabled={renameSaving}
+                aria-busy={renameSaving ? "true" : "false"}
+              >
+                {renameSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -76,7 +76,6 @@
   border: 1px solid var(--input-border);
   background: var(--input-bg);
   color: var(--text-on-panel);
-  color-scheme: dark;
 }
 
 .select:focus {

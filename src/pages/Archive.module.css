@@ -13,7 +13,6 @@
   color: var(--text);
   padding: 10px 12px;
   outline: none;
-  color-scheme: dark;
 }
 
 .input:focus {
