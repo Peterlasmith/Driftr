@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import RejectedFeedbackEditor from "./RejectedFeedbackEditor";
 import styles from "./ApplicationTable.module.css";
 
 function formatDate(dateStr) {
@@ -18,6 +19,18 @@ function daysSince(dateApplied) {
   return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
 }
 
+function hasFeedback(app) {
+  const note = String(app?.rejectionReasonNote || "").trim();
+  const tags = Array.isArray(app?.rejectionReasonTags) ? app.rejectionReasonTags : [];
+  return Boolean(note) || tags.length > 0;
+}
+
+function feedbackPreview(note) {
+  const text = String(note || "").trim();
+  if (!text) return "";
+  return text.length > 120 ? `${text.slice(0, 117)}...` : text;
+}
+
 export default function ApplicationTable({
   applications,
   rejectedApplications = [],
@@ -28,8 +41,44 @@ export default function ApplicationTable({
   onDelete,
   onStatusChange,
   onArchive,
-  onCaptureRejection
+  reasonOptions = [],
+  onSaveRejectedFeedback
 }) {
+  const [editingFeedbackId, setEditingFeedbackId] = useState(null);
+  const [savingFeedbackId, setSavingFeedbackId] = useState(null);
+
+  async function handleSaveFeedback(app, feedback) {
+    if (!onSaveRejectedFeedback || !app?.id) return;
+    setSavingFeedbackId(app.id);
+    try {
+      await onSaveRejectedFeedback(app, feedback);
+      setEditingFeedbackId((prev) => (prev === app.id ? null : prev));
+    } finally {
+      setSavingFeedbackId((prev) => (prev === app.id ? null : prev));
+    }
+  }
+
+  function renderRow(app) {
+    return (
+      <ApplicationRowWithFeedback
+        key={app.id}
+        app={app}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+        onArchive={onArchive}
+        reasonOptions={reasonOptions}
+        onSaveRejectedFeedback={onSaveRejectedFeedback ? handleSaveFeedback : null}
+        feedbackEditing={editingFeedbackId === app.id}
+        feedbackSaving={savingFeedbackId === app.id}
+        onOpenFeedbackEditor={() => setEditingFeedbackId(app.id)}
+        onCloseFeedbackEditor={() =>
+          setEditingFeedbackId((prev) => (prev === app.id ? null : prev))
+        }
+      />
+    );
+  }
+
   if (loading) {
     return (
       <div className={styles.loadingWrap}>
@@ -48,11 +97,7 @@ export default function ApplicationTable({
             rows={rejectedApplications}
             collapsed={rejectedCollapsed}
             onToggle={onToggleRejectedCollapse}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onStatusChange={onStatusChange}
-            onArchive={onArchive}
-            onCaptureRejection={onCaptureRejection}
+            renderRow={renderRow}
           />
         </div>
       );
@@ -78,119 +123,123 @@ export default function ApplicationTable({
             <th className={styles.right}>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {applications.map((app) => (
-            <ApplicationRow
-              key={app.id}
-              app={app}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onStatusChange={onStatusChange}
-              onArchive={onArchive}
-              onCaptureRejection={onCaptureRejection}
-            />
-          ))}
-        </tbody>
+        <tbody>{applications.map(renderRow)}</tbody>
       </table>
 
       <RejectedSection
         rows={rejectedApplications}
         collapsed={rejectedCollapsed}
         onToggle={onToggleRejectedCollapse}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onStatusChange={onStatusChange}
-        onArchive={onArchive}
-        onCaptureRejection={onCaptureRejection}
+        renderRow={renderRow}
       />
     </div>
   );
 }
 
-function ApplicationRow({ app, onEdit, onDelete, onStatusChange, onArchive, onCaptureRejection }) {
-  return (
-    <tr>
-      <td>
-        <div className={styles.titleCell}>
-          <div className={styles.jobTitle}>{app.jobTitle || "—"}</div>
-          {app.jobUrl ? (
-            <a className={styles.url} href={app.jobUrl} target="_blank" rel="noreferrer">
-              View posting
-            </a>
-          ) : null}
-        </div>
-      </td>
-      <td>{app.company || "—"}</td>
-      <td>{formatDate(app.dateApplied)}</td>
-      <td>
-        <select
-          className={styles.select}
-          value={app.status || "Applied"}
-          onChange={(e) => onStatusChange(app, e.target.value)}
-        >
-          <option value="Applied">Applied</option>
-          <option value="Screening">Screening</option>
-          <option value="Interview">Interview</option>
-          <option value="Offer">Offer</option>
-          <option value="Rejected">Rejected</option>
-        </select>
-      </td>
-      <td className={styles.right}>{daysSince(app.dateApplied)}</td>
-      <td className={styles.right}>
-        <div className={styles.actions}>
-          {app.status === "Rejected" && onArchive ? (
-            <button className={styles.secondaryButton} onClick={() => onArchive(app.id)}>
-              Archive
-            </button>
-          ) : null}
-          {app.status === "Rejected" && onCaptureRejection ? (
-            <button className={styles.secondaryButton} onClick={() => onCaptureRejection(app)}>
-              Reason
-            </button>
-          ) : null}
-          <button className={styles.secondaryButton} onClick={() => onEdit(app)}>
-            Edit
-          </button>
-          <button className={styles.dangerButton} onClick={() => onDelete(app.id)}>
-            Delete
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function RejectedSection({
-  rows,
-  collapsed,
-  onToggle,
+function ApplicationRowWithFeedback({
+  app,
   onEdit,
   onDelete,
   onStatusChange,
   onArchive,
-  onCaptureRejection
+  reasonOptions,
+  onSaveRejectedFeedback,
+  feedbackEditing,
+  feedbackSaving,
+  onOpenFeedbackEditor,
+  onCloseFeedbackEditor
 }) {
+  const rejected = app.status === "Rejected";
+  const showPreview = rejected && String(app?.rejectionReasonNote || "").trim();
+  const showEditor = rejected && feedbackEditing && onSaveRejectedFeedback;
+
+  return (
+    <>
+      <tr>
+        <td>
+          <div className={styles.titleCell}>
+            <div className={styles.jobTitle}>{app.jobTitle || "—"}</div>
+            {app.jobUrl ? (
+              <a className={styles.url} href={app.jobUrl} target="_blank" rel="noreferrer">
+                View posting
+              </a>
+            ) : null}
+            {showPreview ? (
+              <div className={styles.feedbackPreview}>
+                <span className={styles.feedbackLabel}>Feedback:</span> {feedbackPreview(app.rejectionReasonNote)}
+              </div>
+            ) : null}
+          </div>
+        </td>
+        <td>{app.company || "—"}</td>
+        <td>{formatDate(app.dateApplied)}</td>
+        <td>
+          <select
+            className={styles.select}
+            value={app.status || "Applied"}
+            onChange={(e) => onStatusChange(app, e.target.value)}
+          >
+            <option value="Applied">Applied</option>
+            <option value="Screening">Screening</option>
+            <option value="Interview">Interview</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </td>
+        <td className={styles.right}>{daysSince(app.dateApplied)}</td>
+        <td className={styles.right}>
+          <div className={styles.actions}>
+            {rejected && onArchive ? (
+              <button type="button" className={styles.secondaryButton} onClick={() => onArchive(app.id)}>
+                Archive
+              </button>
+            ) : null}
+            {rejected && onSaveRejectedFeedback ? (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={feedbackEditing ? onCloseFeedbackEditor : onOpenFeedbackEditor}
+              >
+                {feedbackEditing ? "Close feedback" : hasFeedback(app) ? "Edit feedback" : "Add feedback"}
+              </button>
+            ) : null}
+            <button type="button" className={styles.secondaryButton} onClick={() => onEdit(app)}>
+              Edit
+            </button>
+            <button type="button" className={styles.dangerButton} onClick={() => onDelete(app.id)}>
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {showEditor ? (
+        <tr className={styles.feedbackEditorRow}>
+          <td colSpan={6}>
+            <RejectedFeedbackEditor
+              app={app}
+              reasonOptions={reasonOptions}
+              saving={feedbackSaving}
+              onCancel={onCloseFeedbackEditor}
+              onSave={(feedback) => onSaveRejectedFeedback(app, feedback)}
+            />
+          </td>
+        </tr>
+      ) : null}
+    </>
+  );
+}
+
+function RejectedSection({ rows, collapsed, onToggle, renderRow }) {
   if (!rows || rows.length === 0) return null;
   return (
     <div className={styles.rejectedSection}>
-      <button className={styles.rejectedHeader} onClick={onToggle}>
+      <button type="button" className={styles.rejectedHeader} onClick={onToggle}>
         Rejected ({rows.length}) {collapsed ? "▸" : "▾"}
       </button>
       {!collapsed ? (
         <table className={styles.table}>
-          <tbody>
-            {rows.map((app) => (
-              <ApplicationRow
-                key={app.id}
-                app={app}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onStatusChange={onStatusChange}
-                onArchive={onArchive}
-                onCaptureRejection={onCaptureRejection}
-              />
-            ))}
-          </tbody>
+          <tbody>{rows.map(renderRow)}</tbody>
         </table>
       ) : null}
     </div>

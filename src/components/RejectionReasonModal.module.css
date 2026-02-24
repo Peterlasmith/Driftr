@@ -102,6 +102,75 @@
   gap: 6px;
 }
 
+.recruiterSection {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.recruiterHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recruiterDraftWrap {
+  display: grid;
+  gap: 8px;
+}
+
+.recruiterDraft {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 10px 12px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.recruiterActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inlineLink {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inlineLink:hover {
+  color: var(--accent-hover);
+}
+
+.inlineLink:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.helperMessage {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .textarea {
   width: 100%;
   min-height: 92px;

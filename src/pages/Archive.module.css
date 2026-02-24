@@ -69,6 +69,22 @@
   text-align: right;
 }
 
+.cellStack {
+  display: grid;
+  gap: 4px;
+}
+
+.feedbackPreview {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.feedbackLabel {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .actions {
   display: inline-flex;
   gap: 8px;
@@ -98,6 +114,11 @@
 
 .dangerButton:hover {
   background: rgba(239, 68, 68, 0.1);
+}
+
+.feedbackEditorRow td {
+  background: rgba(255, 255, 255, 0.015);
+  padding-top: 8px;
 }
 
 @media (max-width: 900px) {

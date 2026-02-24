@@ -107,6 +107,8 @@ function normalizeDoc(id, data) {
     rejectionReasonTags: Array.isArray(data?.rejectionReasonTags) ? data.rejectionReasonTags : [],
     rejectionReasonNote: data?.rejectionReasonNote ?? "",
     rejectionCapturedAt: toJsDate(data?.rejectionCapturedAt),
+    rejectionFeedbackPromptDisabledForApp: Boolean(data?.rejectionFeedbackPromptDisabledForApp),
+    rejectionFeedbackPromptDisabledAt: toJsDate(data?.rejectionFeedbackPromptDisabledAt),
     archivedAt: toJsDate(data?.archivedAt),
     archivedBy: data?.archivedBy ?? ""
   };
@@ -169,6 +171,8 @@ export async function createApplication(userId, input) {
     rejectionReasonTags: [],
     rejectionReasonNote: null,
     rejectionCapturedAt: null,
+    rejectionFeedbackPromptDisabledForApp: false,
+    rejectionFeedbackPromptDisabledAt: null,
     archivedAt: null,
     archivedBy: null,
     createdAt: serverTimestamp(),
@@ -329,10 +333,29 @@ export async function updateApplicationStatusWithRejectionMeta(
   if (status === "Rejected") {
     const tags = Array.isArray(rejectionMeta?.tags) ? rejectionMeta.tags : [];
     const validTags = tags.filter((tag) => REJECTION_REASON_OPTIONS.includes(tag));
-    if (validTags.length > 0) {
+    const noteValue =
+      rejectionMeta && Object.prototype.hasOwnProperty.call(rejectionMeta, "note")
+        ? (rejectionMeta?.note || "").trim()
+        : null;
+    const hasNoteInput = noteValue !== null;
+    const hasFeedbackPayload = validTags.length > 0 || (hasNoteInput && noteValue.length > 0);
+
+    if (Array.isArray(rejectionMeta?.tags)) {
       payload.rejectionReasonTags = validTags;
-      payload.rejectionReasonNote = (rejectionMeta?.note || "").trim() || null;
+    }
+    if (hasNoteInput) {
+      payload.rejectionReasonNote = noteValue || null;
+    }
+    if (hasFeedbackPayload) {
       payload.rejectionCapturedAt = serverTimestamp();
+    }
+
+    if (rejectionMeta?.disablePromptForApp === true) {
+      payload.rejectionFeedbackPromptDisabledForApp = true;
+      payload.rejectionFeedbackPromptDisabledAt = serverTimestamp();
+    } else if (rejectionMeta?.disablePromptForApp === false) {
+      payload.rejectionFeedbackPromptDisabledForApp = false;
+      payload.rejectionFeedbackPromptDisabledAt = null;
     }
 
     if (rejectionMeta?.archiveNow) {
@@ -348,6 +371,29 @@ export async function updateApplicationStatusWithRejectionMeta(
   }
 
   await updateDoc(doc(db, COLLECTION_NAME, id), payload);
+}
+
+export async function updateRejectedApplicationFeedback(userId, id, feedback = {}) {
+  if (!userId) throw new Error("updateRejectedApplicationFeedback requires userId");
+  const tags = Array.isArray(feedback?.tags) ? feedback.tags : [];
+  const validTags = tags.filter((tag) => REJECTION_REASON_OPTIONS.includes(tag));
+  const note = typeof feedback?.note === "string" ? feedback.note.trim() : "";
+
+  await updateDoc(doc(db, COLLECTION_NAME, id), {
+    rejectionReasonTags: validTags,
+    rejectionReasonNote: note || null,
+    rejectionCapturedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+}
+
+export async function setRejectedFeedbackPromptDisabledForApp(userId, id, disabled) {
+  if (!userId) throw new Error("setRejectedFeedbackPromptDisabledForApp requires userId");
+  await updateDoc(doc(db, COLLECTION_NAME, id), {
+    rejectionFeedbackPromptDisabledForApp: Boolean(disabled),
+    rejectionFeedbackPromptDisabledAt: disabled ? serverTimestamp() : null,
+    updatedAt: serverTimestamp()
+  });
 }
 
 export async function archiveApplication(userId, id) {

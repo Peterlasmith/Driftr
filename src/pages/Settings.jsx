@@ -1,12 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import shell from "../App.module.css";
 import styles from "./Settings.module.css";
+import { DEFAULT_USER_PREFERENCES, subscribeToUserPreferences, upsertUserPreferences } from "../services/userPreferences";
 
 export default function Settings() {
   const { user } = useAuth();
-  const [error] = useState("");
+  const [error, setError] = useState("");
+  const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
+  const [savingPromptPref, setSavingPromptPref] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setUserPrefs(DEFAULT_USER_PREFERENCES);
+      return undefined;
+    }
+    const unsubscribe = subscribeToUserPreferences(
+      user.uid,
+      (prefs) => setUserPrefs(prefs),
+      () => setUserPrefs(DEFAULT_USER_PREFERENCES)
+    );
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  async function handleToggleRejectedPrompt() {
+    if (!user?.uid || savingPromptPref) return;
+    const next = !(userPrefs?.rejectedFeedbackPromptEnabled !== false);
+    setSavingPromptPref(true);
+    setError("");
+    setUserPrefs((prev) => ({ ...prev, rejectedFeedbackPromptEnabled: next }));
+    try {
+      await upsertUserPreferences(user.uid, { rejectedFeedbackPromptEnabled: next });
+    } catch (err) {
+      setUserPrefs((prev) => ({ ...prev, rejectedFeedbackPromptEnabled: !next }));
+      setError(err?.message || "Failed to save settings.");
+    } finally {
+      setSavingPromptPref(false);
+    }
+  }
 
   return (
     <>
@@ -54,6 +86,33 @@ export default function Settings() {
               </div>
               <div className={styles.comingSoonOverlay}>
                 <span className={styles.comingSoonBadge}>Coming Soon</span>
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <div className={styles.sectionTitle}>Applications</div>
+            <div className={styles.card}>
+              <div className={styles.toggleRow}>
+                <div>
+                  <div className={styles.toggleLabel}>Rejected Feedback Prompt</div>
+                  <div className={styles.toggleSub}>
+                    Prompt for feedback when an application is moved to rejected
+                  </div>
+                </div>
+                <button
+                  className={`${styles.toggle} ${
+                    userPrefs?.rejectedFeedbackPromptEnabled !== false ? styles.toggleOn : ""
+                  }`}
+                  onClick={handleToggleRejectedPrompt}
+                  type="button"
+                  role="switch"
+                  aria-checked={userPrefs?.rejectedFeedbackPromptEnabled !== false}
+                  aria-label="Toggle rejected feedback prompt"
+                  disabled={savingPromptPref}
+                >
+                  <span className={styles.toggleKnob} />
+                </button>
               </div>
             </div>
           </section>

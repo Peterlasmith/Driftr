@@ -5,9 +5,11 @@ import {
   deleteApplication,
   REJECTION_REASON_OPTIONS,
   subscribeToArchivedApplications,
-  unarchiveApplication
+  unarchiveApplication,
+  updateRejectedApplicationFeedback
 } from "../services/applications";
 import { useAuth } from "../auth/AuthProvider";
+import RejectedFeedbackEditor from "../components/RejectedFeedbackEditor";
 
 const REASON_LABELS = {
   NO_RESPONSE: "No response",
@@ -28,6 +30,18 @@ function formatDate(dateValue) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
 }
 
+function hasFeedback(row) {
+  const note = String(row?.rejectionReasonNote || "").trim();
+  const tags = Array.isArray(row?.rejectionReasonTags) ? row.rejectionReasonTags : [];
+  return Boolean(note) || tags.length > 0;
+}
+
+function feedbackPreview(note) {
+  const text = String(note || "").trim();
+  if (!text) return "";
+  return text.length > 120 ? `${text.slice(0, 117)}...` : text;
+}
+
 export default function Archive() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -37,6 +51,8 @@ export default function Archive() {
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [editingFeedbackId, setEditingFeedbackId] = useState(null);
+  const [feedbackSavingId, setFeedbackSavingId] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -104,6 +120,21 @@ export default function Archive() {
       await deleteApplication(user.uid, id);
     } catch (err) {
       setError(err?.message || "Failed to delete application.");
+    }
+  }
+
+  async function handleSaveFeedback(row, feedback) {
+    if (!row?.id) return;
+    setError("");
+    setFeedbackSavingId(row.id);
+    try {
+      await updateRejectedApplicationFeedback(user.uid, row.id, feedback);
+      setEditingFeedbackId((prev) => (prev === row.id ? null : prev));
+    } catch (err) {
+      setError(err?.message || "Failed to save feedback.");
+      throw err;
+    } finally {
+      setFeedbackSavingId((prev) => (prev === row.id ? null : prev));
     }
   }
 
@@ -175,25 +206,70 @@ export default function Archive() {
               <tbody>
                 {filteredRows.map((row) => {
                   const tags = Array.isArray(row.rejectionReasonTags) ? row.rejectionReasonTags : [];
+                  const isEditingFeedback = editingFeedbackId === row.id;
                   return (
-                    <tr key={row.id}>
-                      <td>{row.jobTitle || "-"}</td>
-                      <td>{row.company || "-"}</td>
-                      <td>{formatDate(row.dateApplied)}</td>
-                      <td>{formatDate(row.archivedAt)}</td>
-                      <td>{tags.length ? tags.map((tag) => REASON_LABELS[tag] || tag).join(", ") : "-"}</td>
-                      <td>{row.rejectionReasonNote || "-"}</td>
-                      <td className={pageStyles.right}>
-                        <div className={pageStyles.actions}>
-                          <button className={pageStyles.secondaryButton} onClick={() => handleUnarchive(row.id)}>
-                            Unarchive
-                          </button>
-                          <button className={pageStyles.dangerButton} onClick={() => handleDelete(row.id)}>
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <React.Fragment key={row.id}>
+                      <tr>
+                        <td>
+                          <div className={pageStyles.cellStack}>
+                            <div>{row.jobTitle || "-"}</div>
+                            {String(row.rejectionReasonNote || "").trim() ? (
+                              <div className={pageStyles.feedbackPreview}>
+                                <span className={pageStyles.feedbackLabel}>Feedback:</span>{" "}
+                                {feedbackPreview(row.rejectionReasonNote)}
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td>{row.company || "-"}</td>
+                        <td>{formatDate(row.dateApplied)}</td>
+                        <td>{formatDate(row.archivedAt)}</td>
+                        <td>{tags.length ? tags.map((tag) => REASON_LABELS[tag] || tag).join(", ") : "-"}</td>
+                        <td>{row.rejectionReasonNote || "-"}</td>
+                        <td className={pageStyles.right}>
+                          <div className={pageStyles.actions}>
+                            <button
+                              type="button"
+                              className={pageStyles.secondaryButton}
+                              onClick={() => setEditingFeedbackId(isEditingFeedback ? null : row.id)}
+                            >
+                              {isEditingFeedback
+                                ? "Close feedback"
+                                : hasFeedback(row)
+                                  ? "Edit feedback"
+                                  : "Add feedback"}
+                            </button>
+                            <button
+                              type="button"
+                              className={pageStyles.secondaryButton}
+                              onClick={() => handleUnarchive(row.id)}
+                            >
+                              Unarchive
+                            </button>
+                            <button
+                              type="button"
+                              className={pageStyles.dangerButton}
+                              onClick={() => handleDelete(row.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isEditingFeedback ? (
+                        <tr className={pageStyles.feedbackEditorRow}>
+                          <td colSpan={7}>
+                            <RejectedFeedbackEditor
+                              app={row}
+                              reasonOptions={REJECTION_REASON_OPTIONS}
+                              saving={feedbackSavingId === row.id}
+                              onCancel={() => setEditingFeedbackId(null)}
+                              onSave={(feedback) => handleSaveFeedback(row, feedback)}
+                            />
+                          </td>
+                        </tr>
+                      ) : null}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

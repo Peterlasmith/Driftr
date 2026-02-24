@@ -9,13 +9,58 @@ import {
   deleteApplication,
   subscribeToApplications,
   updateApplication,
-  updateApplicationStatusWithRejectionMeta
+  updateApplicationStatusWithRejectionMeta,
+  updateRejectedApplicationFeedback
 } from "./services/applications";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
 import { subscribeToResumes } from "./services/resumes";
 import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
 import RejectionReasonModal from "./components/RejectionReasonModal";
+import { DEFAULT_USER_PREFERENCES, subscribeToUserPreferences } from "./services/userPreferences";
+
+function buildRecruiterFeedbackEmail(app) {
+  const role = app?.jobTitle || "the role";
+  const company = app?.company || "your team";
+  return [
+    `Subject: Thank you — request for feedback on ${role}`,
+    "",
+    "Hi,",
+    "",
+    `Thank you for your time and for considering me for ${role}${company ? ` at ${company}` : ""}.`,
+    "If you're able to share any brief feedback on my application/interview, I'd really appreciate it.",
+    "I'm actively improving and any guidance would be helpful.",
+    "",
+    "Thanks again,",
+    "[Your Name]"
+  ].join("\n");
+}
+
+async function copyText(text) {
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fallback below.
+  }
+
+  try {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.setAttribute("readonly", "");
+    el.style.position = "absolute";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(el);
+    return ok;
+  } catch {
+    return false;
+  }
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -30,6 +75,7 @@ export default function Dashboard() {
   const [rejectedCollapsed, setRejectedCollapsed] = useState(true);
   const [rejectionModal, setRejectionModal] = useState({ open: false, app: null });
   const [rejectionSaving, setRejectionSaving] = useState(false);
+  const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
 
   const nonArchivedApplications = useMemo(
     () => applications.filter((app) => !app.archivedAt),
@@ -74,6 +120,21 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, [user?.uid]);
 
+  useEffect(() => {
+    if (!user?.uid) {
+      setUserPrefs(DEFAULT_USER_PREFERENCES);
+      return undefined;
+    }
+
+    const unsubscribe = subscribeToUserPreferences(
+      user.uid,
+      (prefs) => setUserPrefs(prefs),
+      () => setUserPrefs(DEFAULT_USER_PREFERENCES)
+    );
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
   async function handleCreateOrUpdate(payload) {
     setSaving(true);
     setError("");
@@ -109,6 +170,17 @@ export default function Dashboard() {
     if (!app?.id) return;
 
     if (status === "Rejected" && app.status !== "Rejected") {
+      const promptEnabled = userPrefs?.rejectedFeedbackPromptEnabled !== false;
+      const appPromptDisabled = Boolean(app?.rejectionFeedbackPromptDisabledForApp);
+      if (!promptEnabled || appPromptDisabled) {
+        setError("");
+        try {
+          await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
+        } catch (err) {
+          setError(err?.message || "Failed to update status.");
+        }
+        return;
+      }
       setRejectionModal({ open: true, app });
       return;
     }
@@ -149,9 +221,20 @@ export default function Dashboard() {
     }
   }
 
-  function openRejectionReasonModal(app) {
+  async function handleRequestRecruiterFeedback(app) {
+    const email = buildRecruiterFeedbackEmail(app);
+    return copyText(email);
+  }
+
+  async function handleSaveRejectedFeedback(app, feedback) {
     if (!app?.id) return;
-    setRejectionModal({ open: true, app });
+    setError("");
+    try {
+      await updateRejectedApplicationFeedback(user.uid, app.id, feedback);
+    } catch (err) {
+      setError(err?.message || "Failed to save feedback.");
+      throw err;
+    }
   }
 
   function openAdd() {
@@ -188,7 +271,8 @@ export default function Dashboard() {
           onDelete={handleDelete}
           onStatusChange={handleStatusChange}
           onArchive={handleArchive}
-          onCaptureRejection={openRejectionReasonModal}
+          reasonOptions={REJECTION_REASON_OPTIONS}
+          onSaveRejectedFeedback={handleSaveRejectedFeedback}
         />
       </div>
 
@@ -218,6 +302,7 @@ export default function Dashboard() {
         saving={rejectionSaving}
         onCancel={handleRejectionCancel}
         onSubmit={handleRejectionSubmit}
+        onRequestRecruiterFeedback={handleRequestRecruiterFeedback}
       />
 
       <ApplicationCsvImportModal
