@@ -2,7 +2,11 @@ const cors = require("cors");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { parseHtmlForJobDetails } = require("./jobParser");
-const { analyzeResumeWithOpenAI, extractResumeText } = require("./resumeAnalyzer");
+const {
+  analyzeRejectionFeedbackWithOpenAI,
+  analyzeResumeWithOpenAI,
+  extractResumeText
+} = require("./resumeAnalyzer");
 
 admin.initializeApp();
 
@@ -240,3 +244,68 @@ exports.analyzeResume = onRequest({ region: "us-central1", timeoutSeconds: 60 },
     }
   });
 });
+
+exports.extractRejectionInsights = onRequest(
+  { region: "us-central1", timeoutSeconds: 60 },
+  async (req, res) => {
+    corsHandler(req, res, async () => {
+      if (req.method === "OPTIONS") return res.status(204).send("");
+      if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+      const uid = await verifyFirebaseIdToken(req.get("authorization"));
+      const ip =
+        (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+        req.socket?.remoteAddress ||
+        "";
+      const key = rateKey({ uid, ip });
+      if (!checkRateLimit(key)) return res.status(429).json({ error: "Rate limited" });
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+
+      const applicationId =
+        typeof req.body?.applicationId === "string" ? req.body.applicationId.trim() : "";
+      if (!applicationId) return res.status(400).json({ error: "Missing applicationId" });
+
+      try {
+        const appRef = admin.firestore().collection("applications").doc(applicationId);
+        const snap = await appRef.get();
+        if (!snap.exists) return res.status(404).json({ error: "Application not found" });
+        const data = snap.data() || {};
+        if (data.userId !== uid) return res.status(403).json({ error: "Forbidden" });
+
+        const initialNote = normalizeText(data.rejectionReasonNote || "");
+        if (!initialNote) return res.status(200).json({ ok: true, skipped: true });
+
+        const rejectionInsights = await analyzeRejectionFeedbackWithOpenAI({
+          feedbackText: initialNote
+        });
+
+        const latestSnap = await appRef.get();
+        if (!latestSnap.exists) return res.status(404).json({ error: "Application not found" });
+        const latest = latestSnap.data() || {};
+        if (latest.userId !== uid) return res.status(403).json({ error: "Forbidden" });
+        const latestNote = normalizeText(latest.rejectionReasonNote || "");
+        if (!latestNote) return res.status(200).json({ ok: true, skipped: true });
+        if (latestNote !== initialNote) {
+          return res.status(200).json({ ok: true, stale: true });
+        }
+
+        await appRef.update({
+          rejectionInsights,
+          rejectionInsightsExtractedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return res.status(200).json({ ok: true, rejectionInsights });
+      } catch (err) {
+        const msg = String(err?.message || "");
+        const isAuth = msg.toLowerCase().includes("missing openai_api_key");
+        return res.status(200).json({
+          ok: false,
+          error: isAuth
+            ? "Rejection insight extraction is not configured."
+            : "Rejection insight extraction failed."
+        });
+      }
+    });
+  }
+);

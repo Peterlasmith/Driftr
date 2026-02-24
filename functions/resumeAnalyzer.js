@@ -59,6 +59,28 @@ Resume text:
 ${resumeText}`;
 }
 
+function rejectionFeedbackPrompt(feedbackText) {
+  return `Extract structured rejection feedback insights from the note below.
+
+Return ONLY a JSON object with exactly these keys:
+{
+  "skillGaps": ["specific missing hard skills only"],
+  "experienceMismatches": ["seniority/years/domain mismatches only"],
+  "softSignals": ["communication/culture/soft-skill signals only"],
+  "processOnly": false
+}
+
+Rules:
+- Do not guess. Use only signals explicitly present or strongly implied in the note.
+- If the note is too vague to extract meaningful signal, return empty arrays and processOnly=false.
+- processOnly=true only when the rejection is entirely circumstantial and unrelated to the candidate (e.g. role closed, internal hire, budget freeze).
+- If processOnly=true, all three arrays MUST be empty.
+- Keep entries short, specific, and normalized (no duplicates).
+
+Rejection note:
+${feedbackText}`;
+}
+
 function safeParseJsonObject(maybeJson) {
   if (!maybeJson) return null;
   if (typeof maybeJson === "object") return maybeJson;
@@ -107,8 +129,77 @@ async function analyzeResumeWithOpenAI({ resumeText }) {
   return parsed;
 }
 
+function sanitizeInsightArray(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const item of value) {
+    const clean = normalizeWhitespace(String(item ?? ""));
+    if (!clean) continue;
+    const key = clean.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(clean);
+  }
+  return out;
+}
+
+function normalizeRejectionInsights(raw) {
+  if (!raw || typeof raw !== "object") {
+    return {
+      skillGaps: [],
+      experienceMismatches: [],
+      softSignals: [],
+      processOnly: false
+    };
+  }
+
+  const processOnly = Boolean(raw.processOnly);
+  const normalized = {
+    skillGaps: sanitizeInsightArray(raw.skillGaps),
+    experienceMismatches: sanitizeInsightArray(raw.experienceMismatches),
+    softSignals: sanitizeInsightArray(raw.softSignals),
+    processOnly
+  };
+
+  if (normalized.processOnly) {
+    normalized.skillGaps = [];
+    normalized.experienceMismatches = [];
+    normalized.softSignals = [];
+  }
+
+  return normalized;
+}
+
+async function analyzeRejectionFeedbackWithOpenAI({ feedbackText }) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
+
+  const client = new OpenAI({ apiKey });
+  const promptText = rejectionFeedbackPrompt(clampTextForPrompt(feedbackText, 4000));
+
+  const resp = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.1,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You extract structured hiring rejection feedback. Return only valid JSON with exactly the requested keys."
+      },
+      { role: "user", content: promptText }
+    ]
+  });
+
+  const content = resp?.choices?.[0]?.message?.content || "";
+  const parsed = safeParseJsonObject(content);
+  if (!parsed) throw new Error("OpenAI returned invalid JSON");
+  return normalizeRejectionInsights(parsed);
+}
+
 module.exports = {
   analyzeResumeWithOpenAI,
+  analyzeRejectionFeedbackWithOpenAI,
   extractResumeText
 };
-

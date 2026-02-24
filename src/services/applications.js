@@ -14,6 +14,7 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { extractRejectionInsights } from "./rejectionFeedbackInsights";
 
 const COLLECTION_NAME = "applications";
 export const APPLICATION_STATUS_OPTIONS = [
@@ -90,6 +91,33 @@ function getMappedValue(rawRow, mapping, fieldName) {
   return rawRow?.[header];
 }
 
+function normalizeStringArray(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item ?? "").trim())
+    .filter(Boolean);
+}
+
+function normalizeRejectionInsights(value) {
+  if (!value || typeof value !== "object") return null;
+  const processOnly = Boolean(value.processOnly);
+  const skillGaps = normalizeStringArray(value.skillGaps);
+  const experienceMismatches = normalizeStringArray(value.experienceMismatches);
+  const softSignals = normalizeStringArray(value.softSignals);
+  return {
+    skillGaps: processOnly ? [] : skillGaps,
+    experienceMismatches: processOnly ? [] : experienceMismatches,
+    softSignals: processOnly ? [] : softSignals,
+    processOnly
+  };
+}
+
+function triggerRejectionInsightsExtractionSilently(applicationId, note) {
+  if (!applicationId) return;
+  if (!String(note || "").trim()) return;
+  void extractRejectionInsights(applicationId).catch(() => {});
+}
+
 function normalizeDoc(id, data) {
   return {
     id,
@@ -106,6 +134,8 @@ function normalizeDoc(id, data) {
     notes: data?.notes ?? "",
     rejectionReasonTags: Array.isArray(data?.rejectionReasonTags) ? data.rejectionReasonTags : [],
     rejectionReasonNote: data?.rejectionReasonNote ?? "",
+    rejectionInsights: normalizeRejectionInsights(data?.rejectionInsights),
+    rejectionInsightsExtractedAt: toJsDate(data?.rejectionInsightsExtractedAt),
     rejectionCapturedAt: toJsDate(data?.rejectionCapturedAt),
     rejectionFeedbackPromptDisabledForApp: Boolean(data?.rejectionFeedbackPromptDisabledForApp),
     rejectionFeedbackPromptDisabledAt: toJsDate(data?.rejectionFeedbackPromptDisabledAt),
@@ -170,6 +200,8 @@ export async function createApplication(userId, input) {
     notes: input.notes?.trim() || null,
     rejectionReasonTags: [],
     rejectionReasonNote: null,
+    rejectionInsights: null,
+    rejectionInsightsExtractedAt: null,
     rejectionCapturedAt: null,
     rejectionFeedbackPromptDisabledForApp: false,
     rejectionFeedbackPromptDisabledAt: null,
@@ -323,6 +355,8 @@ export async function updateApplicationStatusWithRejectionMeta(
 ) {
   if (!userId) throw new Error("updateApplicationStatusWithRejectionMeta requires userId");
   if (!APPLICATION_STATUS_OPTIONS.includes(status)) throw new Error("Invalid application status.");
+  let extractedNoteForTrigger = "";
+  let shouldTriggerRejectionInsights = false;
 
   const payload = {
     status,
@@ -345,6 +379,10 @@ export async function updateApplicationStatusWithRejectionMeta(
     }
     if (hasNoteInput) {
       payload.rejectionReasonNote = noteValue || null;
+      payload.rejectionInsights = null;
+      payload.rejectionInsightsExtractedAt = null;
+      extractedNoteForTrigger = noteValue || "";
+      shouldTriggerRejectionInsights = Boolean(noteValue);
     }
     if (hasFeedbackPayload) {
       payload.rejectionCapturedAt = serverTimestamp();
@@ -371,6 +409,10 @@ export async function updateApplicationStatusWithRejectionMeta(
   }
 
   await updateDoc(doc(db, COLLECTION_NAME, id), payload);
+
+  if (shouldTriggerRejectionInsights) {
+    triggerRejectionInsightsExtractionSilently(id, extractedNoteForTrigger);
+  }
 }
 
 export async function updateRejectedApplicationFeedback(userId, id, feedback = {}) {
@@ -382,9 +424,13 @@ export async function updateRejectedApplicationFeedback(userId, id, feedback = {
   await updateDoc(doc(db, COLLECTION_NAME, id), {
     rejectionReasonTags: validTags,
     rejectionReasonNote: note || null,
+    rejectionInsights: null,
+    rejectionInsightsExtractedAt: null,
     rejectionCapturedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
+
+  triggerRejectionInsightsExtractionSilently(id, note);
 }
 
 export async function setRejectedFeedbackPromptDisabledForApp(userId, id, disabled) {
