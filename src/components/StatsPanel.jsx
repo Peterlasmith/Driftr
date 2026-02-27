@@ -72,15 +72,34 @@ export default function StatsPanel() {
         <div className={styles.name}>Your Search</div>
       </div>
 
-      {/* Big response rate card */}
+      {/* Big interview rate card */}
       <div className={styles.bigStat}>
         <div className={styles.bigStatGlow} />
-        <div className={styles.bsLabel}>Response Rate</div>
+        <div className={styles.bsLabel}>Interview Rate</div>
         <div className={styles.bsValue}>
-          {stats.responseRate}<em className={styles.bsUnit}>%</em>
+          {stats.interviewRate}<em className={styles.bsUnit}>%</em>
         </div>
         <div className={styles.bsSub}>
-          {stats.responded} of {stats.total} applications responded
+          {stats.interviewReached} of {stats.total} applications reached interview
+        </div>
+        <div className={styles.bsBar}>
+          <div
+            className={styles.bsFill}
+            style={{ width: `${Math.min(stats.interviewRate, 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Compact response rate card */}
+      <div className={[styles.bigStat, styles.compactStat].join(" ")}>
+        <div className={styles.bsLabel}>Response Rate</div>
+        <div className={styles.compactValueRow}>
+          <div className={styles.compactValue}>
+            {stats.responseRate}<em className={styles.compactUnit}>%</em>
+          </div>
+          <div className={styles.compactSub}>
+            {stats.responded} of {stats.total} applications responded
+          </div>
         </div>
         <div className={styles.bsBar}>
           <div

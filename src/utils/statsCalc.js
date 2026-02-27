@@ -15,6 +15,13 @@ export function calcStats(applications) {
   ).length;
   const responded = applications.filter((a) => a.status !== "Applied").length;
   const responseRate = total === 0 ? 0 : Math.round((responded / total) * 100);
+  const interviewReached = applications.filter((a) => {
+    if (a.status === "Interview" || a.status === "Offer") return true;
+    if (a.status !== "Rejected") return false;
+    const tags = Array.isArray(a.rejectionReasonTags) ? a.rejectionReasonTags : [];
+    return tags.includes("INTERVIEW_REJECT");
+  }).length;
+  const interviewRate = total === 0 ? 0 : Math.round((interviewReached / total) * 100);
 
   const dayValues = applications
     .map((a) => daysSince(a.dateApplied))
@@ -28,7 +35,16 @@ export function calcStats(applications) {
     (a) => a.status === "Interview" || a.status === "Screening"
   ).length;
 
-  return { total, active, responseRate, avgDaysSince, responded, interviews };
+  return {
+    total,
+    active,
+    responseRate,
+    avgDaysSince,
+    responded,
+    interviews,
+    interviewReached,
+    interviewRate
+  };
 }
 
 export function getGreeting() {

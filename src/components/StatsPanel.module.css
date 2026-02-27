@@ -93,6 +93,38 @@
   transition: width 0.4s ease;
 }
 
+.compactStat {
+  padding: 0.8rem 1rem;
+}
+
+.compactValueRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.compactValue {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 300;
+  color: white;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.compactUnit {
+  font-style: normal;
+  font-size: 0.9rem;
+  color: var(--rust-light);
+}
+
+.compactSub {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: right;
+}
+
 /* Mini grid */
 .miniGrid {
   display: grid;
