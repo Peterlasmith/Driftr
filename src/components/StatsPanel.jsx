@@ -10,6 +10,7 @@ export default function StatsPanel() {
   const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [resumes, setResumes] = useState([]);
+  const [activeNeedsDataId, setActiveNeedsDataId] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -117,7 +118,34 @@ export default function StatsPanel() {
             <div key={r.id} className={styles.rbItem}>
               <div className={styles.rbRow}>
                 <span className={styles.rbName}>{r.name}</span>
-                <span className={styles.rbPct}>{r.rateLabel}</span>
+                {r.rate == null ? (
+                  <span className={styles.rbPctTooltipWrap}>
+                    <button
+                      type="button"
+                      className={styles.rbPctTrigger}
+                      tabIndex={0}
+                      aria-describedby={`needs-data-tip-${r.id}`}
+                      onMouseEnter={() => setActiveNeedsDataId(r.id)}
+                      onMouseLeave={() => setActiveNeedsDataId((curr) => (curr === r.id ? null : curr))}
+                      onFocus={() => setActiveNeedsDataId(r.id)}
+                      onBlur={() => setActiveNeedsDataId((curr) => (curr === r.id ? null : curr))}
+                    >
+                      {r.rateLabel}
+                    </button>
+                    <span
+                      id={`needs-data-tip-${r.id}`}
+                      role="tooltip"
+                      className={[
+                        styles.rbTooltip,
+                        activeNeedsDataId === r.id ? styles.rbTooltipVisible : ""
+                      ].join(" ")}
+                    >
+                      Add more applications tied to this resume.
+                    </span>
+                  </span>
+                ) : (
+                  <span className={styles.rbPct}>{r.rateLabel}</span>
+                )}
               </div>
               <div className={styles.rbBar}>
                 {r.rate != null ? (

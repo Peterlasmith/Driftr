@@ -175,6 +175,69 @@
   color: rgba(255, 255, 255, 0.22);
 }
 
+.rbPctTooltipWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rbPctTrigger {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.63rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.22);
+  cursor: help;
+}
+
+.rbPctTrigger:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.rbTooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  max-width: 210px;
+  width: max-content;
+  padding: 0.45rem 0.55rem;
+  border-radius: 7px;
+  background: rgba(18, 13, 12, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.6rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(2px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 30;
+}
+
+.rbTooltip::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 100%;
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: rgba(18, 13, 12, 0.96) transparent transparent transparent;
+}
+
+.rbTooltipVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .rbBar {
   height: 2.5px;
   background: rgba(255, 255, 255, 0.07);
