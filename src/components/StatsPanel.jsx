@@ -48,11 +48,15 @@ export default function StatsPanel() {
     return (resumes || []).map((r) => {
       const p = perf.byId.get(r.id);
       const rate = p?.responseRate;
+      const applicationCount = p?.applications || 0;
+      const neededCount = Math.max(0, 5 - applicationCount);
       return {
         id: r.id,
         name: r.versionName || "Untitled",
         rate,
-        rateLabel: rate == null ? "needs data" : `${rate}%`
+        rateLabel: rate == null ? "needs data" : `${rate}%`,
+        applicationCount,
+        neededCount
       };
     });
   }, [resumes, perf]);
@@ -140,7 +144,8 @@ export default function StatsPanel() {
                         activeNeedsDataId === r.id ? styles.rbTooltipVisible : ""
                       ].join(" ")}
                     >
-                      Add more applications tied to this resume.
+                      {r.neededCount} more {r.neededCount === 1 ? "application" : "applications"} needed
+                      {" "}({r.applicationCount}/5) to calculate response rate.
                     </span>
                   </span>
                 ) : (
