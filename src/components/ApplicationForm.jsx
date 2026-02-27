@@ -17,6 +17,15 @@ const EMPTY = {
   notes: ""
 };
 
+function buildInitialValue(initialValue) {
+  if (!initialValue) return { ...EMPTY, dateApplied: toDateInputValue(new Date()) };
+  return {
+    ...EMPTY,
+    ...initialValue,
+    dateApplied: toDateInputValue(initialValue.dateApplied)
+  };
+}
+
 function toDateInputValue(value) {
   if (!value) return "";
   const d = new Date(value);
@@ -40,14 +49,7 @@ export default function ApplicationForm({
 }) {
   const isEdit = Boolean(initialValue?.id);
 
-  const initial = useMemo(() => {
-    if (!initialValue) return { ...EMPTY, dateApplied: toDateInputValue(new Date()) };
-    return {
-      ...EMPTY,
-      ...initialValue,
-      dateApplied: toDateInputValue(initialValue.dateApplied)
-    };
-  }, [initialValue]);
+  const initial = useMemo(() => buildInitialValue(initialValue), [initialValue]);
 
   const [value, setValue] = useState(initial);
   const [parsing, setParsing] = useState(false);
@@ -83,9 +85,11 @@ export default function ApplicationForm({
   }, [resumes, resumePerf]);
 
   useEffect(() => {
+    if (!open) return;
     setValue(initial);
     setParseError("");
-  }, [initial]);
+    setUploadOpen(false);
+  }, [open, isEdit, initial]);
 
   if (!open) return null;
 
