@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ApplicationTable from "./components/ApplicationTable";
 import ApplicationForm from "./components/ApplicationForm";
 import {
@@ -71,11 +71,13 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [rejectedCollapsed, setRejectedCollapsed] = useState(true);
   const [rejectionModal, setRejectionModal] = useState({ open: false, app: null });
   const [rejectionSaving, setRejectionSaving] = useState(false);
   const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
+  const addMenuRef = useRef(null);
 
   const nonArchivedApplications = useMemo(
     () => applications.filter((app) => !app.archivedAt),
@@ -109,6 +111,27 @@ export default function Dashboard() {
 
     return () => unsubscribe();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!addMenuOpen) return undefined;
+
+    function handleOutsideClick(event) {
+      if (!addMenuRef.current?.contains(event.target)) {
+        setAddMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === "Escape") setAddMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [addMenuOpen]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -238,8 +261,16 @@ export default function Dashboard() {
   }
 
   function openAdd() {
+    setAddMenuOpen(false);
     setEditing(null);
     setFormOpen(true);
+  }
+
+  function openImport() {
+    setAddMenuOpen(false);
+    setFormOpen(false);
+    setEditing(null);
+    setImportOpen(true);
   }
 
   function openEdit(app) {
@@ -252,9 +283,29 @@ export default function Dashboard() {
       <div className={styles.pgHeader}>
         <div className={styles.pgTitle}>Applications</div>
         <div className={styles.pgActions}>
-          <button className={styles.primaryButton} onClick={openAdd} type="button">
-            + Add application
-          </button>
+          <div className={styles.addSplit} ref={addMenuRef}>
+            <button className={`${styles.primaryButton} ${styles.addSplitMain}`} onClick={openAdd} type="button">
+              + Add application
+            </button>
+            <button
+              className={`${styles.primaryButton} ${styles.addSplitToggle}`}
+              type="button"
+              aria-label="Open add application menu"
+              aria-haspopup="menu"
+              aria-expanded={addMenuOpen}
+              onClick={() => setAddMenuOpen((value) => !value)}
+            >
+              ▾
+            </button>
+
+            {addMenuOpen ? (
+              <div className={styles.addMenu} role="menu" aria-label="Add application options">
+                <button className={styles.addMenuItem} onClick={openImport} type="button" role="menuitem">
+                  Import CSV
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -286,11 +337,6 @@ export default function Dashboard() {
         onClose={() => {
           setFormOpen(false);
           setEditing(null);
-        }}
-        onOpenImport={() => {
-          setFormOpen(false);
-          setEditing(null);
-          setImportOpen(true);
         }}
         onSubmit={handleCreateOrUpdate}
       />

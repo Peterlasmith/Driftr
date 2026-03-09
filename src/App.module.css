@@ -223,6 +223,60 @@
   align-items: center;
 }
 
+.addSplit {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.addSplitMain {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.addSplitToggle {
+  min-width: 2.2rem;
+  padding-inline: 0.65rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.addMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-elevated);
+  box-shadow: var(--shadow);
+  z-index: 20;
+}
+
+.addMenuItem {
+  appearance: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-on-panel);
+  text-align: left;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 0.83rem;
+}
+
+.addMenuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.addMenuItem:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
 .pgBody {
   flex: 1;
   padding: 1rem 1.5rem;
@@ -344,5 +398,17 @@
 
   .primaryButton {
     width: 100%;
+  }
+
+  .addSplit {
+    width: 100%;
+  }
+
+  .addSplit .primaryButton {
+    width: auto;
+  }
+
+  .addSplitMain {
+    flex: 1 1 auto;
   }
 }

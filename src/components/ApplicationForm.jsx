@@ -44,7 +44,6 @@ export default function ApplicationForm({
   resumes,
   applications,
   onClose,
-  onOpenImport,
   onSubmit
 }) {
   const isEdit = Boolean(initialValue?.id);
@@ -313,11 +312,6 @@ export default function ApplicationForm({
           </div>
 
           <div className={styles.footer}>
-            {!isEdit && onOpenImport ? (
-              <button type="button" className={styles.tertiaryButton} onClick={onOpenImport}>
-                Import CSV instead
-              </button>
-            ) : null}
             <button type="button" className={styles.secondaryButton} onClick={onClose}>
               Cancel
             </button>
