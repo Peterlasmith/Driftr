@@ -4,6 +4,10 @@
   min-height: 100vh;
 }
 
+.shellResumes {
+  grid-template-columns: 60px 340px 1fr;
+}
+
 .main {
   display: flex;
   flex-direction: column;
