@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { extractRejectionInsights } from "./rejectionFeedbackInsights";
+import { deriveInterviewReached } from "../utils/interviewTracking";
 
 const COLLECTION_NAME = "applications";
 export const APPLICATION_STATUS_OPTIONS = [
@@ -132,6 +133,7 @@ function normalizeDoc(id, data) {
     resumeVersionId: data?.resumeVersionId ?? "",
     resumeVersion: data?.resumeVersion ?? "",
     notes: data?.notes ?? "",
+    interviewReached: data?.interviewReached === true,
     rejectionReasonTags: Array.isArray(data?.rejectionReasonTags) ? data.rejectionReasonTags : [],
     rejectionReasonNote: data?.rejectionReasonNote ?? "",
     rejectionInsights: normalizeRejectionInsights(data?.rejectionInsights),
@@ -186,6 +188,7 @@ export function subscribeToArchivedApplications(userId, onData, onError) {
 export async function createApplication(userId, input) {
   if (!userId) throw new Error("createApplication requires userId");
   const date = toMidnightDate(input.dateApplied);
+  const status = input.status ?? "Applied";
   const payload = {
     userId,
     jobTitle: input.jobTitle?.trim() ?? "",
@@ -193,11 +196,12 @@ export async function createApplication(userId, input) {
     location: input.location?.trim() || null,
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
-    status: input.status ?? "Applied",
+    status,
     statusChangedAt: serverTimestamp(),
     resumeVersionId: input.resumeVersionId || null,
     resumeVersion: input.resumeVersion?.trim() || null,
     notes: input.notes?.trim() || null,
+    interviewReached: deriveInterviewReached(null, status, input.rejectionReasonTags),
     rejectionReasonTags: [],
     rejectionReasonNote: null,
     rejectionInsights: null,
@@ -320,21 +324,26 @@ export async function createApplicationsBulk(userId, rows) {
 
 export async function updateApplication(userId, id, input) {
   if (!userId) throw new Error("updateApplication requires userId");
+  const ref = doc(db, COLLECTION_NAME, id);
+  const snap = await getDoc(ref);
+  const current = snap.exists() ? normalizeDoc(snap.id, snap.data()) : null;
   const date = toMidnightDate(input.dateApplied);
+  const status = input.status ?? "Applied";
   const payload = {
     jobTitle: input.jobTitle?.trim() ?? "",
     company: input.company?.trim() ?? "",
     location: input.location?.trim() || null,
     jobUrl: input.jobUrl?.trim() ?? "",
     dateApplied: date ? Timestamp.fromDate(date) : null,
-    status: input.status ?? "Applied",
+    status,
     resumeVersionId: input.resumeVersionId || null,
     resumeVersion: input.resumeVersion?.trim() || null,
     notes: input.notes?.trim() || null,
+    interviewReached: deriveInterviewReached(current, status, current?.rejectionReasonTags),
     updatedAt: serverTimestamp()
   };
 
-  await updateDoc(doc(db, COLLECTION_NAME, id), payload);
+  await updateDoc(ref, payload);
 }
 
 export async function deleteApplication(userId, id) {
@@ -355,11 +364,16 @@ export async function updateApplicationStatusWithRejectionMeta(
 ) {
   if (!userId) throw new Error("updateApplicationStatusWithRejectionMeta requires userId");
   if (!APPLICATION_STATUS_OPTIONS.includes(status)) throw new Error("Invalid application status.");
+  const ref = doc(db, COLLECTION_NAME, id);
+  const snap = await getDoc(ref);
+  const current = snap.exists() ? normalizeDoc(snap.id, snap.data()) : null;
   let extractedNoteForTrigger = "";
   let shouldTriggerRejectionInsights = false;
+  let nextRejectionTags = current?.rejectionReasonTags;
 
   const payload = {
     status,
+    interviewReached: false,
     statusChangedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   };
@@ -376,6 +390,7 @@ export async function updateApplicationStatusWithRejectionMeta(
 
     if (Array.isArray(rejectionMeta?.tags)) {
       payload.rejectionReasonTags = validTags;
+      nextRejectionTags = validTags;
     }
     if (hasNoteInput) {
       payload.rejectionReasonNote = noteValue || null;
@@ -408,7 +423,9 @@ export async function updateApplicationStatusWithRejectionMeta(
     payload.archivedBy = null;
   }
 
-  await updateDoc(doc(db, COLLECTION_NAME, id), payload);
+  payload.interviewReached = deriveInterviewReached(current, status, nextRejectionTags);
+
+  await updateDoc(ref, payload);
 
   if (shouldTriggerRejectionInsights) {
     triggerRejectionInsightsExtractionSilently(id, extractedNoteForTrigger);
@@ -417,11 +434,15 @@ export async function updateApplicationStatusWithRejectionMeta(
 
 export async function updateRejectedApplicationFeedback(userId, id, feedback = {}) {
   if (!userId) throw new Error("updateRejectedApplicationFeedback requires userId");
+  const ref = doc(db, COLLECTION_NAME, id);
+  const snap = await getDoc(ref);
+  const current = snap.exists() ? normalizeDoc(snap.id, snap.data()) : null;
   const tags = Array.isArray(feedback?.tags) ? feedback.tags : [];
   const validTags = tags.filter((tag) => REJECTION_REASON_OPTIONS.includes(tag));
   const note = typeof feedback?.note === "string" ? feedback.note.trim() : "";
 
-  await updateDoc(doc(db, COLLECTION_NAME, id), {
+  await updateDoc(ref, {
+    interviewReached: deriveInterviewReached(current, current?.status ?? "Rejected", validTags),
     rejectionReasonTags: validTags,
     rejectionReasonNote: note || null,
     rejectionInsights: null,

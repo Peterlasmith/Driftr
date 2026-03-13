@@ -9,20 +9,79 @@ export default function Settings() {
   const { user } = useAuth();
   const [error, setError] = useState("");
   const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
+  const [profileDraft, setProfileDraft] = useState({
+    fullName: DEFAULT_USER_PREFERENCES.fullName,
+    targetRole: DEFAULT_USER_PREFERENCES.targetRole
+  });
   const [savingPromptPref, setSavingPromptPref] = useState(false);
+  const [savingProfile, setSavingProfile] = useState({
+    fullName: false,
+    targetRole: false
+  });
 
   useEffect(() => {
     if (!user?.uid) {
       setUserPrefs(DEFAULT_USER_PREFERENCES);
+      setProfileDraft({
+        fullName: DEFAULT_USER_PREFERENCES.fullName,
+        targetRole: DEFAULT_USER_PREFERENCES.targetRole
+      });
       return undefined;
     }
     const unsubscribe = subscribeToUserPreferences(
       user.uid,
-      (prefs) => setUserPrefs(prefs),
-      () => setUserPrefs(DEFAULT_USER_PREFERENCES)
+      (prefs) => {
+        setUserPrefs(prefs);
+        setProfileDraft({
+          fullName: prefs?.fullName || "",
+          targetRole: prefs?.targetRole || ""
+        });
+      },
+      () => {
+        setUserPrefs(DEFAULT_USER_PREFERENCES);
+        setProfileDraft({
+          fullName: DEFAULT_USER_PREFERENCES.fullName,
+          targetRole: DEFAULT_USER_PREFERENCES.targetRole
+        });
+      }
     );
     return () => unsubscribe();
   }, [user?.uid]);
+
+  function handleProfileChange(field, value) {
+    setProfileDraft((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleProfileBlur(field) {
+    if (!user?.uid || savingProfile[field]) return;
+
+    const rawValue = profileDraft?.[field] ?? "";
+    const trimmedValue = String(rawValue).trim();
+    const currentSavedValue = String(userPrefs?.[field] ?? "").trim();
+
+    if (trimmedValue === currentSavedValue) {
+      if (rawValue !== trimmedValue) {
+        setProfileDraft((prev) => ({ ...prev, [field]: trimmedValue }));
+      }
+      return;
+    }
+
+    const previousSavedValue = String(userPrefs?.[field] ?? "");
+    setSavingProfile((prev) => ({ ...prev, [field]: true }));
+    setError("");
+    setProfileDraft((prev) => ({ ...prev, [field]: trimmedValue }));
+    setUserPrefs((prev) => ({ ...prev, [field]: trimmedValue }));
+
+    try {
+      await upsertUserPreferences(user.uid, { [field]: trimmedValue });
+    } catch (err) {
+      setProfileDraft((prev) => ({ ...prev, [field]: previousSavedValue }));
+      setUserPrefs((prev) => ({ ...prev, [field]: previousSavedValue }));
+      setError(err?.message || "Failed to save settings.");
+    } finally {
+      setSavingProfile((prev) => ({ ...prev, [field]: false }));
+    }
+  }
 
   async function handleToggleRejectedPrompt() {
     if (!user?.uid || savingPromptPref) return;
@@ -56,7 +115,15 @@ export default function Settings() {
             <div className={styles.card}>
               <div className={styles.row}>
                 <label className={styles.label}>Full Name</label>
-                <input className={styles.input} type="text" placeholder="Your name" />
+                <input
+                  className={styles.input}
+                  type="text"
+                  placeholder="Your name"
+                  value={profileDraft.fullName}
+                  onChange={(event) => handleProfileChange("fullName", event.target.value)}
+                  onBlur={() => handleProfileBlur("fullName")}
+                  disabled={savingProfile.fullName}
+                />
               </div>
               <div className={styles.row}>
                 <label className={styles.label}>Email</label>
@@ -70,7 +137,15 @@ export default function Settings() {
               </div>
               <div className={styles.row}>
                 <label className={styles.label}>Target Role</label>
-                <input className={styles.input} type="text" placeholder="e.g. Frontend Engineer" />
+                <input
+                  className={styles.input}
+                  type="text"
+                  placeholder="e.g. Frontend Engineer"
+                  value={profileDraft.targetRole}
+                  onChange={(event) => handleProfileChange("targetRole", event.target.value)}
+                  onBlur={() => handleProfileBlur("targetRole")}
+                  disabled={savingProfile.targetRole}
+                />
               </div>
             </div>
           </section>

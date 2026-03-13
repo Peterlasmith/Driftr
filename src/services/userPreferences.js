@@ -11,12 +11,16 @@ import { db } from "../config/firebase";
 const COLLECTION_NAME = "userPreferences";
 
 export const DEFAULT_USER_PREFERENCES = {
-  rejectedFeedbackPromptEnabled: true
+  rejectedFeedbackPromptEnabled: true,
+  fullName: "",
+  targetRole: ""
 };
 
 function normalizeUserPreferences(data) {
   return {
     ...DEFAULT_USER_PREFERENCES,
+    fullName: typeof data?.fullName === "string" ? data.fullName : "",
+    targetRole: typeof data?.targetRole === "string" ? data.targetRole : "",
     rejectedFeedbackPromptEnabled:
       data?.rejectedFeedbackPromptEnabled === false ? false : true
   };
@@ -54,6 +58,12 @@ export async function upsertUserPreferences(userId, partial) {
 
   if (Object.prototype.hasOwnProperty.call(partial || {}, "rejectedFeedbackPromptEnabled")) {
     next.rejectedFeedbackPromptEnabled = Boolean(partial.rejectedFeedbackPromptEnabled);
+  }
+  if (Object.prototype.hasOwnProperty.call(partial || {}, "fullName")) {
+    next.fullName = String(partial.fullName ?? "").trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(partial || {}, "targetRole")) {
+    next.targetRole = String(partial.targetRole ?? "").trim();
   }
 
   const snap = await getDoc(ref);

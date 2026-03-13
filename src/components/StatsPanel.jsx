@@ -80,7 +80,7 @@ export default function StatsPanel() {
           {stats.interviewRate}<em className={styles.bsUnit}>%</em>
         </div>
         <div className={styles.bsSub}>
-          {stats.interviewReached} of {stats.total} applications reached interview
+          {stats.interviewReached} of {stats.total} applications reached interview stage
         </div>
         <div className={styles.bsBar}>
           <div
@@ -127,9 +127,9 @@ export default function StatsPanel() {
           <div className={styles.mcSub}>Since applying</div>
         </div>
         <div className={styles.miniCard}>
-          <div className={styles.mcLabel}>Interviews</div>
+          <div className={styles.mcLabel}>Interviewed</div>
           <div className={[styles.mcValue, styles.rust].join(" ")}>{stats.interviews}</div>
-          <div className={styles.mcSub}>This month</div>
+          <div className={styles.mcSub}>Ever reached stage</div>
         </div>
       </div>
 

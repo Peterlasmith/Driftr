@@ -1,3 +1,5 @@
+import { hasReachedInterviewStage } from "./interviewTracking";
+
 export function daysSince(dateApplied) {
   if (!dateApplied) return null;
   const start = new Date(dateApplied);
@@ -15,12 +17,7 @@ export function calcStats(applications) {
   ).length;
   const responded = applications.filter((a) => a.status !== "Applied").length;
   const responseRate = total === 0 ? 0 : Math.round((responded / total) * 100);
-  const interviewReached = applications.filter((a) => {
-    if (a.status === "Interview" || a.status === "Offer") return true;
-    if (a.status !== "Rejected") return false;
-    const tags = Array.isArray(a.rejectionReasonTags) ? a.rejectionReasonTags : [];
-    return tags.includes("INTERVIEW_REJECT");
-  }).length;
+  const interviewReached = applications.filter(hasReachedInterviewStage).length;
   const interviewRate = total === 0 ? 0 : Math.round((interviewReached / total) * 100);
 
   const dayValues = applications
@@ -31,9 +28,7 @@ export function calcStats(applications) {
       ? 0
       : Math.round(dayValues.reduce((sum, n) => sum + n, 0) / dayValues.length);
 
-  const interviews = applications.filter(
-    (a) => a.status === "Interview" || a.status === "Screening"
-  ).length;
+  const interviews = interviewReached;
 
   return {
     total,

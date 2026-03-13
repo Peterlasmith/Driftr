@@ -10,28 +10,33 @@ describe("calcStats interview rate", () => {
   test("counts Interview and Offer statuses as interview reached", () => {
     const stats = calcStats([
       { status: "Applied" },
+      { status: "Screening" },
       { status: "Interview" },
       { status: "Offer" },
-      { status: "Screening" }
+      { status: "Rejected" }
     ]);
 
-    expect(stats.interviewReached).toBe(2);
-    expect(stats.interviewRate).toBe(50);
+    expect(stats.interviewReached).toBe(3);
+    expect(stats.interviewRate).toBe(60);
+    expect(stats.interviews).toBe(3);
   });
 
-  test("counts Rejected with INTERVIEW_REJECT tag as interview reached", () => {
+  test("counts persisted and tagged rejected applications as interview reached", () => {
     const stats = calcStats([
       { status: "Applied" },
-      { status: "Rejected", rejectionReasonTags: ["INTERVIEW_REJECT"] },
+      { status: "Rejected", interviewReached: true },
       { status: "Rejected", rejectionReasonTags: ["SCREEN_REJECT"] },
-      { status: "Rejected", rejectionReasonTags: ["OTHER", "INTERVIEW_REJECT"] }
+      { status: "Rejected", rejectionReasonTags: ["INTERVIEW_REJECT"] },
+      { status: "Rejected", rejectionReasonTags: ["OTHER", "INTERVIEW_REJECT"] },
+      { status: "Rejected", rejectionReasonTags: ["UNKNOWN"] }
     ]);
 
-    expect(stats.interviewReached).toBe(2);
-    expect(stats.interviewRate).toBe(50);
+    expect(stats.interviewReached).toBe(4);
+    expect(stats.interviewRate).toBe(67);
+    expect(stats.interviews).toBe(4);
   });
 
-  test("does not count Rejected without INTERVIEW_REJECT", () => {
+  test("counts only rejected rows with interview evidence", () => {
     const stats = calcStats([
       { status: "Rejected", rejectionReasonTags: [] },
       { status: "Rejected", rejectionReasonTags: ["SCREEN_REJECT"] },
@@ -39,7 +44,7 @@ describe("calcStats interview rate", () => {
       { status: "Applied" }
     ]);
 
-    expect(stats.interviewReached).toBe(0);
-    expect(stats.interviewRate).toBe(0);
+    expect(stats.interviewReached).toBe(1);
+    expect(stats.interviewRate).toBe(25);
   });
 });
