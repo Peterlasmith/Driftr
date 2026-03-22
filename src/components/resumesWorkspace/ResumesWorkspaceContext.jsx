@@ -109,6 +109,11 @@ export function ResumesWorkspaceProvider({ userId, children }) {
     return (applications || []).filter((app) => app?.resumeVersionId === selectedResume.id);
   }, [applications, selectedResume]);
 
+  const selectedVisibleApplications = useMemo(
+    () => selectedApplications.filter((app) => !app?.archivedAt),
+    [selectedApplications]
+  );
+
   const selectedStats = useMemo(() => calcStats(selectedApplications), [selectedApplications]);
 
   const legacyResumeLabels = useMemo(() => {
@@ -130,6 +135,7 @@ export function ResumesWorkspaceProvider({ userId, children }) {
       setSelectedResumeId,
       selectedResume,
       selectedApplications,
+      selectedVisibleApplications,
       selectedStats,
       legacyResumeLabels,
       loadingResumes,
@@ -143,6 +149,7 @@ export function ResumesWorkspaceProvider({ userId, children }) {
       selectedResumeId,
       selectedResume,
       selectedApplications,
+      selectedVisibleApplications,
       selectedStats,
       legacyResumeLabels,
       loadingResumes,

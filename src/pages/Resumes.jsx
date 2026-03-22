@@ -25,6 +25,13 @@ function formatDateTime(value) {
   return d.toLocaleString();
 }
 
+function formatAppliedDate(value) {
+  if (!value) return "—";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+}
+
 function toList(value) {
   if (!Array.isArray(value)) return [];
   return value.filter(Boolean).map((item) => String(item));
@@ -44,6 +51,7 @@ export default function Resumes() {
     resumes,
     rows,
     selectedResume,
+    selectedVisibleApplications,
     selectedStats,
     setSelectedResumeId,
     legacyResumeLabels,
@@ -343,6 +351,8 @@ export default function Resumes() {
                   />
                 </div>
 
+                <ApplicationsSection applications={selectedVisibleApplications} />
+
                 <div className={styles.tabs}>
                   <button
                     type="button"
@@ -633,5 +643,52 @@ function InsightCard({ title, items, emptyLabel, tone }) {
         </ul>
       )}
     </div>
+  );
+}
+
+function ApplicationsSection({ applications }) {
+  return (
+    <section className={styles.applicationsSection} aria-label="Resume applications">
+      <div className={styles.applicationsHeader}>
+        <div className={styles.applicationsTitle}>Applications</div>
+        <div className={styles.applicationsCount}>
+          {applications.length} {applications.length === 1 ? "linked role" : "linked roles"}
+        </div>
+      </div>
+
+      {applications.length === 0 ? (
+        <div className={styles.applicationsEmpty}>
+          No non-archived applications are linked to this resume yet.
+        </div>
+      ) : (
+        <div className={styles.applicationList}>
+          {applications.map((app) => (
+            <article className={styles.applicationRow} key={app.id}>
+              <div className={styles.applicationMain}>
+                <div className={styles.applicationIdentity}>
+                  <div className={styles.applicationJobTitle}>{app.jobTitle || "Untitled role"}</div>
+                  <div className={styles.applicationCompany}>{app.company || "—"}</div>
+                </div>
+                <div className={styles.applicationMeta}>
+                  <span>{formatAppliedDate(app.dateApplied)}</span>
+                  <span className={styles.applicationMetaDot}>•</span>
+                  <span>{app.status || "Applied"}</span>
+                </div>
+              </div>
+              {app.jobUrl ? (
+                <a
+                  className={styles.applicationLink}
+                  href={app.jobUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View posting
+                </a>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

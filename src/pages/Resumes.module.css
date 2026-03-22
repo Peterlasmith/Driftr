@@ -59,6 +59,110 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.applicationsSection {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: grid;
+  gap: 10px;
+}
+
+.applicationsHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.applicationsTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.56);
+  font-weight: 700;
+}
+
+.applicationsCount {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.applicationsEmpty {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.applicationList {
+  display: grid;
+  gap: 8px;
+}
+
+.applicationRow {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.applicationMain {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.applicationIdentity {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.applicationJobTitle {
+  color: var(--text);
+  font-weight: 650;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.applicationCompany {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.applicationMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.applicationMetaDot {
+  color: rgba(255, 255, 255, 0.24);
+}
+
+.applicationLink {
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.applicationLink:hover {
+  color: var(--accent-hover);
+}
+
 .metricCard {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -671,6 +775,11 @@
   }
 
   .feedbackCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .applicationRow {
     align-items: flex-start;
     flex-direction: column;
   }
