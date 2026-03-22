@@ -3,21 +3,20 @@ import ApplicationTable from "./components/ApplicationTable";
 import ApplicationForm from "./components/ApplicationForm";
 import {
   APPLICATION_STATUS_OPTIONS,
-  REJECTION_REASON_OPTIONS,
   archiveApplication,
   createApplication,
   deleteApplication,
+  dismissStaleStatusPrompt,
   subscribeToApplications,
   updateApplication,
-  updateApplicationStatusWithRejectionMeta,
-  updateRejectedApplicationFeedback
+  updateApplicationStatusWithRejectionMeta
 } from "./services/applications";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
 import { subscribeToResumes } from "./services/resumes";
 import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
-import RejectionReasonModal from "./components/RejectionReasonModal";
 import { DEFAULT_USER_PREFERENCES, subscribeToUserPreferences } from "./services/userPreferences";
+import { getStaleStatusPromptState, normalizeApplicationStatus } from "./utils/staleStatus";
 
 function buildRecruiterFeedbackEmail(app) {
   const role = app?.jobTitle || "the role";
@@ -73,9 +72,7 @@ export default function Dashboard() {
   const [importOpen, setImportOpen] = useState(false);
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [rejectedCollapsed, setRejectedCollapsed] = useState(true);
-  const [rejectionModal, setRejectionModal] = useState({ open: false, app: null });
-  const [rejectionSaving, setRejectionSaving] = useState(false);
+  const [closedOutCollapsed, setClosedOutCollapsed] = useState(true);
   const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
   const addMenuRef = useRef(null);
 
@@ -83,13 +80,28 @@ export default function Dashboard() {
     () => applications.filter((app) => !app.archivedAt),
     [applications]
   );
-  const visibleApplications = useMemo(
-    () => nonArchivedApplications.filter((app) => app.status !== "Rejected"),
-    [nonArchivedApplications]
+  const stalePromptEnabled = userPrefs?.rejectedFeedbackPromptEnabled !== false;
+  const applicationsWithPromptState = useMemo(
+    () =>
+      nonArchivedApplications.map((app) => ({
+        ...app,
+        staleStatusPrompt: stalePromptEnabled ? getStaleStatusPromptState(app) : null
+      })),
+    [nonArchivedApplications, stalePromptEnabled]
   );
-  const rejectedApplications = useMemo(
-    () => nonArchivedApplications.filter((app) => app.status === "Rejected"),
-    [nonArchivedApplications]
+  const visibleApplications = useMemo(
+    () =>
+      applicationsWithPromptState.filter(
+        (app) => normalizeApplicationStatus(app.status) !== "Not moving forward"
+      ),
+    [applicationsWithPromptState]
+  );
+  const closedOutApplications = useMemo(
+    () =>
+      applicationsWithPromptState.filter(
+        (app) => normalizeApplicationStatus(app.status) === "Not moving forward"
+      ),
+    [applicationsWithPromptState]
   );
 
   useEffect(() => {
@@ -192,22 +204,6 @@ export default function Dashboard() {
     if (!APPLICATION_STATUS_OPTIONS.includes(status)) return;
     if (!app?.id) return;
 
-    if (status === "Rejected" && app.status !== "Rejected") {
-      const promptEnabled = userPrefs?.rejectedFeedbackPromptEnabled !== false;
-      const appPromptDisabled = Boolean(app?.rejectionFeedbackPromptDisabledForApp);
-      if (!promptEnabled || appPromptDisabled) {
-        setError("");
-        try {
-          await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
-        } catch (err) {
-          setError(err?.message || "Failed to update status.");
-        }
-        return;
-      }
-      setRejectionModal({ open: true, app });
-      return;
-    }
-
     setError("");
     try {
       await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
@@ -225,38 +221,28 @@ export default function Dashboard() {
     }
   }
 
-  function handleRejectionCancel() {
-    if (rejectionSaving) return;
-    setRejectionModal({ open: false, app: null });
-  }
-
-  async function handleRejectionSubmit(payload) {
-    if (!rejectionModal.app?.id) return;
-    setRejectionSaving(true);
-    setError("");
-    try {
-      await updateApplicationStatusWithRejectionMeta(user.uid, rejectionModal.app.id, "Rejected", payload);
-      setRejectionModal({ open: false, app: null });
-    } catch (err) {
-      setError(err?.message || "Failed to save rejection details.");
-    } finally {
-      setRejectionSaving(false);
-    }
-  }
-
   async function handleRequestRecruiterFeedback(app) {
     const email = buildRecruiterFeedbackEmail(app);
     return copyText(email);
   }
 
-  async function handleSaveRejectedFeedback(app, feedback) {
+  async function handleMoveToNotMovingForward(app) {
     if (!app?.id) return;
     setError("");
     try {
-      await updateRejectedApplicationFeedback(user.uid, app.id, feedback);
+      await updateApplicationStatusWithRejectionMeta(user.uid, app.id, "Not moving forward");
     } catch (err) {
-      setError(err?.message || "Failed to save feedback.");
-      throw err;
+      setError(err?.message || "Failed to update status.");
+    }
+  }
+
+  async function handleDismissStalePrompt(app) {
+    if (!app?.id) return;
+    setError("");
+    try {
+      await dismissStaleStatusPrompt(user.uid, app.id, app.status);
+    } catch (err) {
+      setError(err?.message || "Failed to save reminder preference.");
     }
   }
 
@@ -314,16 +300,18 @@ export default function Dashboard() {
 
         <ApplicationTable
           applications={visibleApplications}
-          rejectedApplications={rejectedApplications}
-          rejectedCollapsed={rejectedCollapsed}
-          onToggleRejectedCollapse={() => setRejectedCollapsed((value) => !value)}
+          closedOutApplications={closedOutApplications}
+          closedOutCollapsed={closedOutCollapsed}
+          onToggleClosedOutCollapse={() => setClosedOutCollapsed((value) => !value)}
           loading={loading}
           onEdit={openEdit}
           onDelete={handleDelete}
           onStatusChange={handleStatusChange}
           onArchive={handleArchive}
-          reasonOptions={REJECTION_REASON_OPTIONS}
-          onSaveRejectedFeedback={handleSaveRejectedFeedback}
+          onMoveToNotMovingForward={handleMoveToNotMovingForward}
+          onDismissStalePrompt={handleDismissStalePrompt}
+          onRequestRecruiterFeedback={handleRequestRecruiterFeedback}
+          statusOptions={APPLICATION_STATUS_OPTIONS}
         />
       </div>
 
@@ -339,16 +327,6 @@ export default function Dashboard() {
           setEditing(null);
         }}
         onSubmit={handleCreateOrUpdate}
-      />
-
-      <RejectionReasonModal
-        open={rejectionModal.open}
-        app={rejectionModal.app}
-        reasonOptions={REJECTION_REASON_OPTIONS}
-        saving={rejectionSaving}
-        onCancel={handleRejectionCancel}
-        onSubmit={handleRejectionSubmit}
-        onRequestRecruiterFeedback={handleRequestRecruiterFeedback}
       />
 
       <ApplicationCsvImportModal

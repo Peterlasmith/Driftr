@@ -170,9 +170,9 @@ export default function Settings() {
             <div className={styles.card}>
               <div className={styles.toggleRow}>
                 <div>
-                  <div className={styles.toggleLabel}>Rejected Feedback Prompt</div>
+                  <div className={styles.toggleLabel}>Stale Application Prompt</div>
                   <div className={styles.toggleSub}>
-                    Prompt for feedback when an application is moved to rejected
+                    Prompt when an application has gone 30+ days without a status update
                   </div>
                 </div>
                 <button
@@ -183,7 +183,7 @@ export default function Settings() {
                   type="button"
                   role="switch"
                   aria-checked={userPrefs?.rejectedFeedbackPromptEnabled !== false}
-                  aria-label="Toggle rejected feedback prompt"
+                  aria-label="Toggle stale application prompt"
                   disabled={savingPromptPref}
                 >
                   <span className={styles.toggleKnob} />
@@ -199,7 +199,7 @@ export default function Settings() {
               <div className={styles.accountRow}>
                 <div>
                   <div className={styles.accountLabel}>Archived Applications</div>
-                  <div className={styles.accountSub}>View rejected applications moved to archive</div>
+                  <div className={styles.accountSub}>View not moving forward applications moved to archive</div>
                 </div>
                 <Link className={styles.btn} to="/archive">
                   View Archive

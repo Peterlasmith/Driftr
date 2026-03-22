@@ -13,7 +13,7 @@ describe("calcStats interview rate", () => {
       { status: "Screening" },
       { status: "Interview" },
       { status: "Offer" },
-      { status: "Rejected" }
+      { status: "Not moving forward" }
     ]);
 
     expect(stats.interviewReached).toBe(3);
@@ -24,11 +24,11 @@ describe("calcStats interview rate", () => {
   test("counts persisted and tagged rejected applications as interview reached", () => {
     const stats = calcStats([
       { status: "Applied" },
-      { status: "Rejected", interviewReached: true },
-      { status: "Rejected", rejectionReasonTags: ["SCREEN_REJECT"] },
-      { status: "Rejected", rejectionReasonTags: ["INTERVIEW_REJECT"] },
-      { status: "Rejected", rejectionReasonTags: ["OTHER", "INTERVIEW_REJECT"] },
-      { status: "Rejected", rejectionReasonTags: ["UNKNOWN"] }
+      { status: "Not moving forward", interviewReached: true },
+      { status: "Not moving forward", rejectionReasonTags: ["SCREEN_REJECT"] },
+      { status: "Not moving forward", rejectionReasonTags: ["INTERVIEW_REJECT"] },
+      { status: "Not moving forward", rejectionReasonTags: ["OTHER", "INTERVIEW_REJECT"] },
+      { status: "Not moving forward", rejectionReasonTags: ["UNKNOWN"] }
     ]);
 
     expect(stats.interviewReached).toBe(4);
@@ -38,13 +38,24 @@ describe("calcStats interview rate", () => {
 
   test("counts only rejected rows with interview evidence", () => {
     const stats = calcStats([
-      { status: "Rejected", rejectionReasonTags: [] },
-      { status: "Rejected", rejectionReasonTags: ["SCREEN_REJECT"] },
-      { status: "Rejected" },
+      { status: "Not moving forward", rejectionReasonTags: [] },
+      { status: "Not moving forward", rejectionReasonTags: ["SCREEN_REJECT"] },
+      { status: "Not moving forward" },
       { status: "Applied" }
     ]);
 
     expect(stats.interviewReached).toBe(1);
     expect(stats.interviewRate).toBe(25);
+  });
+
+  test("treats not moving forward as non-active", () => {
+    const stats = calcStats([
+      { status: "Applied" },
+      { status: "Not moving forward" },
+      { status: "Offer" },
+      { status: "Rejected" }
+    ]);
+
+    expect(stats.active).toBe(1);
   });
 });

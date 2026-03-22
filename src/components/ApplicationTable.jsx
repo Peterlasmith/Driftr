@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import RejectedFeedbackEditor from "./RejectedFeedbackEditor";
+import React from "react";
 import styles from "./ApplicationTable.module.css";
+import { normalizeApplicationStatus } from "../utils/staleStatus";
 
 function formatDate(dateStr) {
   if (!dateStr) return "—";
@@ -19,12 +19,6 @@ function daysSince(dateApplied) {
   return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
 }
 
-function hasFeedback(app) {
-  const note = String(app?.rejectionReasonNote || "").trim();
-  const tags = Array.isArray(app?.rejectionReasonTags) ? app.rejectionReasonTags : [];
-  return Boolean(note) || tags.length > 0;
-}
-
 function feedbackPreview(note) {
   const text = String(note || "").trim();
   if (!text) return "";
@@ -33,48 +27,32 @@ function feedbackPreview(note) {
 
 export default function ApplicationTable({
   applications,
-  rejectedApplications = [],
-  rejectedCollapsed = true,
-  onToggleRejectedCollapse,
+  closedOutApplications = [],
+  closedOutCollapsed = true,
+  onToggleClosedOutCollapse,
   loading,
   onEdit,
   onDelete,
   onStatusChange,
   onArchive,
-  reasonOptions = [],
-  onSaveRejectedFeedback
+  onMoveToNotMovingForward,
+  onDismissStalePrompt,
+  onRequestRecruiterFeedback,
+  statusOptions = []
 }) {
-  const [editingFeedbackId, setEditingFeedbackId] = useState(null);
-  const [savingFeedbackId, setSavingFeedbackId] = useState(null);
-
-  async function handleSaveFeedback(app, feedback) {
-    if (!onSaveRejectedFeedback || !app?.id) return;
-    setSavingFeedbackId(app.id);
-    try {
-      await onSaveRejectedFeedback(app, feedback);
-      setEditingFeedbackId((prev) => (prev === app.id ? null : prev));
-    } finally {
-      setSavingFeedbackId((prev) => (prev === app.id ? null : prev));
-    }
-  }
-
   function renderRow(app) {
     return (
-      <ApplicationRowWithFeedback
+      <ApplicationRow
         key={app.id}
         app={app}
         onEdit={onEdit}
         onDelete={onDelete}
         onStatusChange={onStatusChange}
         onArchive={onArchive}
-        reasonOptions={reasonOptions}
-        onSaveRejectedFeedback={onSaveRejectedFeedback ? handleSaveFeedback : null}
-        feedbackEditing={editingFeedbackId === app.id}
-        feedbackSaving={savingFeedbackId === app.id}
-        onOpenFeedbackEditor={() => setEditingFeedbackId(app.id)}
-        onCloseFeedbackEditor={() =>
-          setEditingFeedbackId((prev) => (prev === app.id ? null : prev))
-        }
+        onMoveToNotMovingForward={onMoveToNotMovingForward}
+        onDismissStalePrompt={onDismissStalePrompt}
+        onRequestRecruiterFeedback={onRequestRecruiterFeedback}
+        statusOptions={statusOptions}
       />
     );
   }
@@ -89,14 +67,14 @@ export default function ApplicationTable({
   }
 
   if (!applications || applications.length === 0) {
-    const hasRejected = rejectedApplications.length > 0;
-    if (hasRejected) {
+    const hasClosedOut = closedOutApplications.length > 0;
+    if (hasClosedOut) {
       return (
         <div className={styles.tableWrap}>
-          <RejectedSection
-            rows={rejectedApplications}
-            collapsed={rejectedCollapsed}
-            onToggle={onToggleRejectedCollapse}
+          <ClosedOutSection
+            rows={closedOutApplications}
+            collapsed={closedOutCollapsed}
+            onToggle={onToggleClosedOutCollapse}
             renderRow={renderRow}
           />
         </div>
@@ -126,32 +104,34 @@ export default function ApplicationTable({
         <tbody>{applications.map(renderRow)}</tbody>
       </table>
 
-      <RejectedSection
-        rows={rejectedApplications}
-        collapsed={rejectedCollapsed}
-        onToggle={onToggleRejectedCollapse}
+      <ClosedOutSection
+        rows={closedOutApplications}
+        collapsed={closedOutCollapsed}
+        onToggle={onToggleClosedOutCollapse}
         renderRow={renderRow}
       />
     </div>
   );
 }
 
-function ApplicationRowWithFeedback({
+function ApplicationRow({
   app,
   onEdit,
   onDelete,
   onStatusChange,
   onArchive,
-  reasonOptions,
-  onSaveRejectedFeedback,
-  feedbackEditing,
-  feedbackSaving,
-  onOpenFeedbackEditor,
-  onCloseFeedbackEditor
+  onMoveToNotMovingForward,
+  onDismissStalePrompt,
+  onRequestRecruiterFeedback,
+  statusOptions
 }) {
-  const rejected = app.status === "Rejected";
-  const showPreview = rejected && String(app?.rejectionReasonNote || "").trim();
-  const showEditor = rejected && feedbackEditing && onSaveRejectedFeedback;
+  const status = normalizeApplicationStatus(app.status);
+  const closedOut = status === "Not moving forward";
+  const showPreview = String(app?.rejectionReasonNote || "").trim();
+  const showStalePrompt = app?.staleStatusPrompt?.shouldPrompt;
+  const rowStatusOptions = statusOptions.includes(status)
+    ? statusOptions
+    : [status, ...statusOptions].filter(Boolean);
 
   return (
     <>
@@ -169,6 +149,39 @@ function ApplicationRowWithFeedback({
                 <span className={styles.feedbackLabel}>Feedback:</span> {feedbackPreview(app.rejectionReasonNote)}
               </div>
             ) : null}
+            {showStalePrompt ? (
+              <div className={styles.stalePrompt}>
+                <div className={styles.stalePromptText}>
+                  It&apos;s been over 30 days with no status update. We recommend moving this to Not moving
+                  forward if you&apos;re no longer expecting movement.
+                </div>
+                <div className={styles.stalePromptActions}>
+                  <button
+                    type="button"
+                    className={styles.primaryButton}
+                    onClick={() => onMoveToNotMovingForward?.(app)}
+                  >
+                    Move to Not moving forward
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => onDismissStalePrompt?.(app)}
+                  >
+                    Keep as is
+                  </button>
+                  {onRequestRecruiterFeedback ? (
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => onRequestRecruiterFeedback(app)}
+                    >
+                      Copy follow-up email
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
           </div>
         </td>
         <td>{app.company || "—"}</td>
@@ -176,31 +189,22 @@ function ApplicationRowWithFeedback({
         <td>
           <select
             className={styles.select}
-            value={app.status || "Applied"}
+            value={status || "Applied"}
             onChange={(e) => onStatusChange(app, e.target.value)}
           >
-            <option value="Applied">Applied</option>
-            <option value="Screening">Screening</option>
-            <option value="Interview">Interview</option>
-            <option value="Offer">Offer</option>
-            <option value="Rejected">Rejected</option>
+            {rowStatusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </select>
         </td>
         <td className={styles.right}>{daysSince(app.dateApplied)}</td>
         <td className={styles.right}>
           <div className={styles.actions}>
-            {rejected && onArchive ? (
+            {closedOut && onArchive ? (
               <button type="button" className={styles.secondaryButton} onClick={() => onArchive(app.id)}>
                 Archive
-              </button>
-            ) : null}
-            {rejected && onSaveRejectedFeedback ? (
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={feedbackEditing ? onCloseFeedbackEditor : onOpenFeedbackEditor}
-              >
-                {feedbackEditing ? "Close feedback" : hasFeedback(app) ? "Edit feedback" : "Add feedback"}
               </button>
             ) : null}
             <button type="button" className={styles.secondaryButton} onClick={() => onEdit(app)}>
@@ -212,30 +216,16 @@ function ApplicationRowWithFeedback({
           </div>
         </td>
       </tr>
-
-      {showEditor ? (
-        <tr className={styles.feedbackEditorRow}>
-          <td colSpan={6}>
-            <RejectedFeedbackEditor
-              app={app}
-              reasonOptions={reasonOptions}
-              saving={feedbackSaving}
-              onCancel={onCloseFeedbackEditor}
-              onSave={(feedback) => onSaveRejectedFeedback(app, feedback)}
-            />
-          </td>
-        </tr>
-      ) : null}
     </>
   );
 }
 
-function RejectedSection({ rows, collapsed, onToggle, renderRow }) {
+function ClosedOutSection({ rows, collapsed, onToggle, renderRow }) {
   if (!rows || rows.length === 0) return null;
   return (
-    <div className={styles.rejectedSection}>
-      <button type="button" className={styles.rejectedHeader} onClick={onToggle}>
-        Rejected ({rows.length}) {collapsed ? "▸" : "▾"}
+    <div className={styles.closedOutSection}>
+      <button type="button" className={styles.closedOutHeader} onClick={onToggle}>
+        Not moving forward ({rows.length}) {collapsed ? "▸" : "▾"}
       </button>
       {!collapsed ? (
         <table className={styles.table}>

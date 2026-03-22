@@ -1,4 +1,5 @@
 import { hasReachedInterviewStage } from "./interviewTracking";
+import { isClosedOutStatus } from "./staleStatus";
 
 export function daysSince(dateApplied) {
   if (!dateApplied) return null;
@@ -12,9 +13,7 @@ export function daysSince(dateApplied) {
 
 export function calcStats(applications) {
   const total = applications.length;
-  const active = applications.filter(
-    (a) => a.status !== "Rejected" && a.status !== "Offer"
-  ).length;
+  const active = applications.filter((a) => !isClosedOutStatus(a.status)).length;
   const responded = applications.filter((a) => a.status !== "Applied").length;
   const responseRate = total === 0 ? 0 : Math.round((responded / total) * 100);
   const interviewReached = applications.filter(hasReachedInterviewStage).length;

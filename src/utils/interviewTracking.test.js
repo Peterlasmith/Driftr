@@ -28,13 +28,13 @@ describe("interview tracking helpers", () => {
 
   test("preserves interview history after moving backward in status", () => {
     const current = { status: "Interview" };
-    expect(deriveInterviewReached(current, "Rejected", [])).toBe(true);
+    expect(deriveInterviewReached(current, "Not moving forward", [])).toBe(true);
     expect(deriveInterviewReached(current, "Applied", [])).toBe(true);
   });
 
   test("marks direct rejection with qualifying feedback as interview reached", () => {
-    expect(deriveInterviewReached(null, "Rejected", ["SCREEN_REJECT"])).toBe(true);
-    expect(deriveInterviewReached(null, "Rejected", ["INTERVIEW_REJECT"])).toBe(true);
-    expect(deriveInterviewReached(null, "Rejected", ["UNKNOWN"])).toBe(false);
+    expect(deriveInterviewReached(null, "Not moving forward", ["SCREEN_REJECT"])).toBe(true);
+    expect(deriveInterviewReached(null, "Not moving forward", ["INTERVIEW_REJECT"])).toBe(true);
+    expect(deriveInterviewReached(null, "Not moving forward", ["UNKNOWN"])).toBe(false);
   });
 });

@@ -54,7 +54,7 @@ describe("ApplicationForm reset behavior", () => {
       open: true,
       saving: false,
       initialValue: null,
-      statusOptions: ["Applied", "Screening", "Interview", "Offer", "Rejected"],
+      statusOptions: ["Applied", "Screening", "Interview", "Offer", "Not moving forward"],
       resumes: [],
       applications: [],
       onClose: jest.fn(),

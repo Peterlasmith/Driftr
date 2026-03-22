@@ -16,6 +16,7 @@ import {
 import { db } from "../config/firebase";
 import { extractRejectionInsights } from "./rejectionFeedbackInsights";
 import { deriveInterviewReached } from "../utils/interviewTracking";
+import { normalizeApplicationStatus } from "../utils/staleStatus";
 
 const COLLECTION_NAME = "applications";
 export const APPLICATION_STATUS_OPTIONS = [
@@ -23,7 +24,7 @@ export const APPLICATION_STATUS_OPTIONS = [
   "Screening",
   "Interview",
   "Offer",
-  "Rejected"
+  "Not moving forward"
 ];
 export const REJECTION_REASON_OPTIONS = [
   "NO_RESPONSE",
@@ -76,7 +77,7 @@ function toDuplicateKey(jobTitle, company, dateApplied) {
 }
 
 function normalizeStatus(rawValue) {
-  const value = asCleanString(rawValue);
+  const value = normalizeApplicationStatus(asCleanString(rawValue));
   if (!value) return { status: "Applied", warning: "" };
   const match = APPLICATION_STATUS_OPTIONS.find((s) => s.toLowerCase() === value.toLowerCase());
   if (match) return { status: match, warning: "" };
@@ -128,7 +129,7 @@ function normalizeDoc(id, data) {
     location: data?.location ?? "",
     jobUrl: data?.jobUrl ?? "",
     dateApplied: toJsDate(data?.dateApplied),
-    status: data?.status ?? "Applied",
+    status: normalizeApplicationStatus(data?.status ?? "Applied"),
     statusChangedAt: toJsDate(data?.statusChangedAt),
     resumeVersionId: data?.resumeVersionId ?? "",
     resumeVersion: data?.resumeVersion ?? "",
@@ -141,6 +142,10 @@ function normalizeDoc(id, data) {
     rejectionCapturedAt: toJsDate(data?.rejectionCapturedAt),
     rejectionFeedbackPromptDisabledForApp: Boolean(data?.rejectionFeedbackPromptDisabledForApp),
     rejectionFeedbackPromptDisabledAt: toJsDate(data?.rejectionFeedbackPromptDisabledAt),
+    staleStatusPromptDismissedAt: toJsDate(data?.staleStatusPromptDismissedAt),
+    staleStatusPromptDismissedForStatus: data?.staleStatusPromptDismissedForStatus
+      ? normalizeApplicationStatus(data.staleStatusPromptDismissedForStatus)
+      : "",
     archivedAt: toJsDate(data?.archivedAt),
     archivedBy: data?.archivedBy ?? ""
   };
@@ -188,7 +193,7 @@ export function subscribeToArchivedApplications(userId, onData, onError) {
 export async function createApplication(userId, input) {
   if (!userId) throw new Error("createApplication requires userId");
   const date = toMidnightDate(input.dateApplied);
-  const status = input.status ?? "Applied";
+  const status = normalizeApplicationStatus(input.status ?? "Applied");
   const payload = {
     userId,
     jobTitle: input.jobTitle?.trim() ?? "",
@@ -209,6 +214,8 @@ export async function createApplication(userId, input) {
     rejectionCapturedAt: null,
     rejectionFeedbackPromptDisabledForApp: false,
     rejectionFeedbackPromptDisabledAt: null,
+    staleStatusPromptDismissedAt: null,
+    staleStatusPromptDismissedForStatus: null,
     archivedAt: null,
     archivedBy: null,
     createdAt: serverTimestamp(),
@@ -328,7 +335,8 @@ export async function updateApplication(userId, id, input) {
   const snap = await getDoc(ref);
   const current = snap.exists() ? normalizeDoc(snap.id, snap.data()) : null;
   const date = toMidnightDate(input.dateApplied);
-  const status = input.status ?? "Applied";
+  const status = normalizeApplicationStatus(input.status ?? "Applied");
+  const currentStatus = normalizeApplicationStatus(current?.status ?? "Applied");
   const payload = {
     jobTitle: input.jobTitle?.trim() ?? "",
     company: input.company?.trim() ?? "",
@@ -342,6 +350,12 @@ export async function updateApplication(userId, id, input) {
     interviewReached: deriveInterviewReached(current, status, current?.rejectionReasonTags),
     updatedAt: serverTimestamp()
   };
+
+  if (status !== currentStatus) {
+    payload.statusChangedAt = serverTimestamp();
+    payload.staleStatusPromptDismissedAt = null;
+    payload.staleStatusPromptDismissedForStatus = null;
+  }
 
   await updateDoc(ref, payload);
 }
@@ -363,7 +377,8 @@ export async function updateApplicationStatusWithRejectionMeta(
   rejectionMeta = null
 ) {
   if (!userId) throw new Error("updateApplicationStatusWithRejectionMeta requires userId");
-  if (!APPLICATION_STATUS_OPTIONS.includes(status)) throw new Error("Invalid application status.");
+  const nextStatus = normalizeApplicationStatus(status);
+  if (!APPLICATION_STATUS_OPTIONS.includes(nextStatus)) throw new Error("Invalid application status.");
   const ref = doc(db, COLLECTION_NAME, id);
   const snap = await getDoc(ref);
   const current = snap.exists() ? normalizeDoc(snap.id, snap.data()) : null;
@@ -372,13 +387,15 @@ export async function updateApplicationStatusWithRejectionMeta(
   let nextRejectionTags = current?.rejectionReasonTags;
 
   const payload = {
-    status,
+    status: nextStatus,
     interviewReached: false,
     statusChangedAt: serverTimestamp(),
+    staleStatusPromptDismissedAt: null,
+    staleStatusPromptDismissedForStatus: null,
     updatedAt: serverTimestamp()
   };
 
-  if (status === "Rejected") {
+  if (nextStatus === "Not moving forward") {
     const tags = Array.isArray(rejectionMeta?.tags) ? rejectionMeta.tags : [];
     const validTags = tags.filter((tag) => REJECTION_REASON_OPTIONS.includes(tag));
     const noteValue =
@@ -423,7 +440,7 @@ export async function updateApplicationStatusWithRejectionMeta(
     payload.archivedBy = null;
   }
 
-  payload.interviewReached = deriveInterviewReached(current, status, nextRejectionTags);
+  payload.interviewReached = deriveInterviewReached(current, nextStatus, nextRejectionTags);
 
   await updateDoc(ref, payload);
 
@@ -442,7 +459,11 @@ export async function updateRejectedApplicationFeedback(userId, id, feedback = {
   const note = typeof feedback?.note === "string" ? feedback.note.trim() : "";
 
   await updateDoc(ref, {
-    interviewReached: deriveInterviewReached(current, current?.status ?? "Rejected", validTags),
+    interviewReached: deriveInterviewReached(
+      current,
+      normalizeApplicationStatus(current?.status ?? "Not moving forward"),
+      validTags
+    ),
     rejectionReasonTags: validTags,
     rejectionReasonNote: note || null,
     rejectionInsights: null,
@@ -463,6 +484,15 @@ export async function setRejectedFeedbackPromptDisabledForApp(userId, id, disabl
   });
 }
 
+export async function dismissStaleStatusPrompt(userId, id, status) {
+  if (!userId) throw new Error("dismissStaleStatusPrompt requires userId");
+  await updateDoc(doc(db, COLLECTION_NAME, id), {
+    staleStatusPromptDismissedAt: serverTimestamp(),
+    staleStatusPromptDismissedForStatus: normalizeApplicationStatus(status ?? "Applied"),
+    updatedAt: serverTimestamp()
+  });
+}
+
 export async function archiveApplication(userId, id) {
   if (!userId) throw new Error("archiveApplication requires userId");
   const ref = doc(db, COLLECTION_NAME, id);
@@ -470,8 +500,9 @@ export async function archiveApplication(userId, id) {
   if (!snap.exists()) throw new Error("Application not found.");
   const data = snap.data();
   if (data?.userId !== userId) throw new Error("Not authorized to archive this application.");
-  if (data?.status !== "Rejected") {
-    throw new Error("Only rejected applications can be archived.");
+  const status = normalizeApplicationStatus(data?.status);
+  if (status !== "Not moving forward") {
+    throw new Error("Only not moving forward applications can be archived.");
   }
   await updateDoc(ref, { archivedAt: serverTimestamp(), archivedBy: userId, updatedAt: serverTimestamp() });
 }
@@ -483,8 +514,9 @@ export async function unarchiveApplication(userId, id) {
   if (!snap.exists()) throw new Error("Application not found.");
   const data = snap.data();
   if (data?.userId !== userId) throw new Error("Not authorized to unarchive this application.");
-  if (data?.status !== "Rejected") {
-    throw new Error("Only rejected applications can be unarchived.");
+  const status = normalizeApplicationStatus(data?.status);
+  if (status !== "Not moving forward") {
+    throw new Error("Only not moving forward applications can be unarchived.");
   }
   await updateDoc(ref, { archivedAt: null, archivedBy: null, updatedAt: serverTimestamp() });
 }
