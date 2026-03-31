@@ -74,6 +74,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [closedOutCollapsed, setClosedOutCollapsed] = useState(true);
   const [userPrefs, setUserPrefs] = useState(DEFAULT_USER_PREFERENCES);
+  const [statusUpdatePendingIds, setStatusUpdatePendingIds] = useState({});
   const addMenuRef = useRef(null);
 
   const nonArchivedApplications = useMemo(
@@ -85,9 +86,10 @@ export default function Dashboard() {
     () =>
       nonArchivedApplications.map((app) => ({
         ...app,
-        staleStatusPrompt: stalePromptEnabled ? getStaleStatusPromptState(app) : null
+        staleStatusPrompt:
+          stalePromptEnabled && !statusUpdatePendingIds[app.id] ? getStaleStatusPromptState(app) : null
       })),
-    [nonArchivedApplications, stalePromptEnabled]
+    [nonArchivedApplications, stalePromptEnabled, statusUpdatePendingIds]
   );
   const visibleApplications = useMemo(
     () =>
@@ -205,10 +207,17 @@ export default function Dashboard() {
     if (!app?.id) return;
 
     setError("");
+    setStatusUpdatePendingIds((current) => ({ ...current, [app.id]: true }));
     try {
       await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
     } catch (err) {
       setError(err?.message || "Failed to update status.");
+    } finally {
+      setStatusUpdatePendingIds((current) => {
+        const next = { ...current };
+        delete next[app.id];
+        return next;
+      });
     }
   }
 
@@ -303,6 +312,7 @@ export default function Dashboard() {
           closedOutApplications={closedOutApplications}
           closedOutCollapsed={closedOutCollapsed}
           onToggleClosedOutCollapse={() => setClosedOutCollapsed((value) => !value)}
+          statusUpdatePendingIds={statusUpdatePendingIds}
           loading={loading}
           onEdit={openEdit}
           onDelete={handleDelete}

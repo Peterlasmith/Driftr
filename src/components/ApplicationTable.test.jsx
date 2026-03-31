@@ -80,4 +80,25 @@ describe("ApplicationTable stale reminders", () => {
       expect.objectContaining({ id: "app-1" })
     );
   });
+
+  test("hides stale prompt and disables status select while status update is pending", () => {
+    renderTable({
+      applications: [
+        {
+          id: "app-1",
+          jobTitle: "Frontend Engineer",
+          company: "Acme",
+          dateApplied: new Date("2026-01-15T00:00:00"),
+          status: "Applied",
+          staleStatusPrompt: { shouldPrompt: true }
+        }
+      ],
+      statusUpdatePendingIds: {
+        "app-1": true
+      }
+    });
+
+    expect(container.textContent).not.toContain("It's been over 30 days with no status update.");
+    expect(container.querySelector("select").disabled).toBe(true);
+  });
 });

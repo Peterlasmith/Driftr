@@ -30,6 +30,7 @@ export default function ApplicationTable({
   closedOutApplications = [],
   closedOutCollapsed = true,
   onToggleClosedOutCollapse,
+  statusUpdatePendingIds = {},
   loading,
   onEdit,
   onDelete,
@@ -45,6 +46,7 @@ export default function ApplicationTable({
       <ApplicationRow
         key={app.id}
         app={app}
+        statusUpdatePending={Boolean(statusUpdatePendingIds?.[app.id])}
         onEdit={onEdit}
         onDelete={onDelete}
         onStatusChange={onStatusChange}
@@ -116,6 +118,7 @@ export default function ApplicationTable({
 
 function ApplicationRow({
   app,
+  statusUpdatePending = false,
   onEdit,
   onDelete,
   onStatusChange,
@@ -128,7 +131,7 @@ function ApplicationRow({
   const status = normalizeApplicationStatus(app.status);
   const closedOut = status === "Not moving forward";
   const showPreview = String(app?.rejectionReasonNote || "").trim();
-  const showStalePrompt = app?.staleStatusPrompt?.shouldPrompt;
+  const showStalePrompt = !statusUpdatePending && app?.staleStatusPrompt?.shouldPrompt;
   const rowStatusOptions = statusOptions.includes(status)
     ? statusOptions
     : [status, ...statusOptions].filter(Boolean);
@@ -190,6 +193,7 @@ function ApplicationRow({
           <select
             className={styles.select}
             value={status || "Applied"}
+            disabled={statusUpdatePending}
             onChange={(e) => onStatusChange(app, e.target.value)}
           >
             {rowStatusOptions.map((option) => (
