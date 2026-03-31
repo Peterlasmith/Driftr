@@ -11,7 +11,8 @@ const EMPTY = {
   location: "",
   jobUrl: "",
   dateApplied: "",
-  status: "Applied",
+  stage: "Applied",
+  outcome: "Active",
   resumeVersionId: "",
   resumeVersion: "",
   notes: ""
@@ -40,7 +41,8 @@ export default function ApplicationForm({
   open,
   saving,
   initialValue,
-  statusOptions,
+  stageOptions,
+  outcomeOptions,
   resumes,
   applications,
   onClose,
@@ -62,9 +64,9 @@ export default function ApplicationForm({
   const resumeOptions = useMemo(() => {
     const rows = (resumes || []).map((r) => {
       const perf = resumePerf.byId.get(r.id);
-      const rate = perf?.responseRate;
+      const rate = perf?.progressionRate;
       const appsCount = perf?.applications ?? 0;
-      const labelRate = rate == null ? "Not enough data" : `${rate}% response rate`;
+      const labelRate = rate == null ? "Not enough data" : `${rate}% progression rate`;
       const isBest = resumePerf.bestResumeId && resumePerf.bestResumeId === r.id;
       const star = isBest ? " ⭐" : "";
       return {
@@ -135,7 +137,8 @@ export default function ApplicationForm({
       location: value.location.trim() || null,
       jobUrl: value.jobUrl.trim(),
       dateApplied: value.dateApplied || null,
-      status: value.status,
+      stage: value.stage,
+      outcome: value.outcome,
       resumeVersionId: value.resumeVersionId ? value.resumeVersionId : null,
       resumeVersion: value.resumeVersionId ? null : value.resumeVersion.trim() || null,
       notes: value.notes.trim() || null
@@ -228,15 +231,30 @@ export default function ApplicationForm({
             </label>
 
             <label className={styles.field}>
-              <div className={styles.label}>Status</div>
+              <div className={styles.label}>Stage</div>
               <select
                 className={styles.input}
-                value={value.status}
-                onChange={(e) => updateField("status", e.target.value)}
+                value={value.stage}
+                onChange={(e) => updateField("stage", e.target.value)}
               >
-                {(statusOptions || []).map((s) => (
+                {(stageOptions || []).map((s) => (
                   <option key={s} value={s}>
                     {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <div className={styles.label}>Outcome</div>
+              <select
+                className={styles.input}
+                value={value.outcome}
+                onChange={(e) => updateField("outcome", e.target.value)}
+              >
+                {(outcomeOptions || []).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
                   </option>
                 ))}
               </select>

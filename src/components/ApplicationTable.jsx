@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./ApplicationTable.module.css";
-import { normalizeApplicationStatus } from "../utils/staleStatus";
+import { normalizeApplicationOutcome, normalizeApplicationStage } from "../utils/staleStatus";
 
 function formatDate(dateStr) {
   if (!dateStr) return "—";
@@ -39,7 +39,7 @@ export default function ApplicationTable({
   onMoveToNotMovingForward,
   onDismissStalePrompt,
   onRequestRecruiterFeedback,
-  statusOptions = []
+  stageOptions = []
 }) {
   function renderRow(app) {
     return (
@@ -54,7 +54,7 @@ export default function ApplicationTable({
         onMoveToNotMovingForward={onMoveToNotMovingForward}
         onDismissStalePrompt={onDismissStalePrompt}
         onRequestRecruiterFeedback={onRequestRecruiterFeedback}
-        statusOptions={statusOptions}
+        stageOptions={stageOptions}
       />
     );
   }
@@ -126,15 +126,16 @@ function ApplicationRow({
   onMoveToNotMovingForward,
   onDismissStalePrompt,
   onRequestRecruiterFeedback,
-  statusOptions
+  stageOptions
 }) {
-  const status = normalizeApplicationStatus(app.status);
-  const closedOut = status === "Not moving forward";
+  const stage = normalizeApplicationStage(app.stage ?? app.status);
+  const outcome = normalizeApplicationOutcome(app.outcome, app.status);
+  const closedOut = outcome === "Not moving forward";
   const showPreview = String(app?.rejectionReasonNote || "").trim();
   const showStalePrompt = !statusUpdatePending && app?.staleStatusPrompt?.shouldPrompt;
-  const rowStatusOptions = statusOptions.includes(status)
-    ? statusOptions
-    : [status, ...statusOptions].filter(Boolean);
+  const rowStageOptions = stageOptions.includes(stage)
+    ? stageOptions
+    : [stage, ...stageOptions].filter(Boolean);
 
   return (
     <>
@@ -155,7 +156,7 @@ function ApplicationRow({
             {showStalePrompt ? (
               <div className={styles.stalePrompt}>
                 <div className={styles.stalePromptText}>
-                  It&apos;s been over 30 days with no status update. We recommend moving this to Not moving
+                  It&apos;s been over 30 days with no stage update. We recommend moving this to Not moving
                   forward if you&apos;re no longer expecting movement.
                 </div>
                 <div className={styles.stalePromptActions}>
@@ -192,16 +193,17 @@ function ApplicationRow({
         <td>
           <select
             className={styles.select}
-            value={status || "Applied"}
+            value={stage || "Applied"}
             disabled={statusUpdatePending}
             onChange={(e) => onStatusChange(app, e.target.value)}
           >
-            {rowStatusOptions.map((option) => (
+            {rowStageOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
           </select>
+          {closedOut ? <div className={styles.feedbackPreview}>Outcome: Not moving forward</div> : null}
         </td>
         <td className={styles.right}>{daysSince(app.dateApplied)}</td>
         <td className={styles.right}>

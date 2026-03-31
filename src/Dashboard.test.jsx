@@ -8,14 +8,16 @@ jest.mock("./auth/AuthProvider", () => ({
 }));
 
 jest.mock("./services/applications", () => ({
-  APPLICATION_STATUS_OPTIONS: ["Applied", "Screening", "Interview", "Offer", "Not moving forward"],
+  APPLICATION_STAGE_OPTIONS: ["Applied", "Screening", "Interview", "Offer"],
+  APPLICATION_OUTCOME_OPTIONS: ["Active", "Not moving forward"],
   archiveApplication: jest.fn(),
   createApplication: jest.fn(),
   deleteApplication: jest.fn(),
   dismissStaleStatusPrompt: jest.fn(),
   subscribeToApplications: jest.fn(),
   updateApplication: jest.fn(),
-  updateApplicationStatusWithRejectionMeta: jest.fn()
+  updateApplicationOutcomeWithRejectionMeta: jest.fn(),
+  updateApplicationStage: jest.fn()
 }));
 
 jest.mock("./services/resumes", () => ({
@@ -69,7 +71,7 @@ jest.mock("./components/ApplicationCsvImportModal", () => {
 const { useAuth } = require("./auth/AuthProvider");
 const {
   subscribeToApplications,
-  updateApplicationStatusWithRejectionMeta
+  updateApplicationStage
 } = require("./services/applications");
 const { subscribeToResumes } = require("./services/resumes");
 const { subscribeToUserPreferences } = require("./services/userPreferences");
@@ -99,7 +101,8 @@ describe("Dashboard status update pending state", () => {
     jobTitle: "Frontend Engineer",
     company: "Acme",
     dateApplied: new Date("2026-01-15T00:00:00"),
-    status: "Applied",
+    stage: "Applied",
+    outcome: "Active",
     statusChangedAt: new Date("2026-02-01T00:00:00"),
     archivedAt: null
   };
@@ -135,7 +138,7 @@ describe("Dashboard status update pending state", () => {
     subscribeToApplications.mockReset();
     subscribeToResumes.mockReset();
     subscribeToUserPreferences.mockReset();
-    updateApplicationStatusWithRejectionMeta.mockReset();
+    updateApplicationStage.mockReset();
 
     act(() => {
       root.unmount();
@@ -152,7 +155,7 @@ describe("Dashboard status update pending state", () => {
 
   test("hides stale prompt while status update is in flight and clears pending state on success", async () => {
     const deferred = createDeferred();
-    updateApplicationStatusWithRejectionMeta.mockReturnValue(deferred.promise);
+    updateApplicationStage.mockReturnValue(deferred.promise);
 
     renderDashboard();
 
@@ -167,7 +170,7 @@ describe("Dashboard status update pending state", () => {
       await flushPromises();
     });
 
-    expect(updateApplicationStatusWithRejectionMeta).toHaveBeenCalledWith("user-1", "app-1", "Interview");
+    expect(updateApplicationStage).toHaveBeenCalledWith("user-1", "app-1", "Interview");
     expect(latestTableProps.statusUpdatePendingIds).toEqual({ "app-1": true });
     expect(container.querySelector('[data-testid="prompt-visible"]').textContent).toBe("no");
     expect(container.querySelector('[data-testid="pending-state"]').textContent).toBe("pending");
@@ -183,7 +186,7 @@ describe("Dashboard status update pending state", () => {
 
   test("clears pending state when status update fails", async () => {
     const deferred = createDeferred();
-    updateApplicationStatusWithRejectionMeta.mockReturnValue(deferred.promise);
+    updateApplicationStage.mockReturnValue(deferred.promise);
 
     renderDashboard();
 

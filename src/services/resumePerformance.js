@@ -1,3 +1,5 @@
+import { normalizeApplicationStage } from "../utils/staleStatus";
+
 export function computeResumePerformance(resumes, applications) {
   const byId = new Map();
   (resumes || []).forEach((r) => {
@@ -5,8 +7,8 @@ export function computeResumePerformance(resumes, applications) {
     byId.set(r.id, {
       resumeId: r.id,
       applications: 0,
-      responded: 0,
-      responseRate: null
+      progressed: 0,
+      progressionRate: null
     });
   });
 
@@ -16,26 +18,26 @@ export function computeResumePerformance(resumes, applications) {
     const perf = byId.get(resumeId);
     if (!perf) return;
     perf.applications += 1;
-    if (app?.status && app.status !== "Applied") perf.responded += 1;
+    if (normalizeApplicationStage(app?.stage ?? app?.status) !== "Applied") perf.progressed += 1;
   });
 
   byId.forEach((perf) => {
     if (perf.applications < 5) {
-      perf.responseRate = null;
+      perf.progressionRate = null;
       return;
     }
     if (perf.applications <= 0) {
-      perf.responseRate = 0;
+      perf.progressionRate = 0;
       return;
     }
-    perf.responseRate = Math.round((perf.responded / perf.applications) * 100);
+    perf.progressionRate = Math.round((perf.progressed / perf.applications) * 100);
   });
 
   const bestResumeId = (() => {
     let best = null;
     byId.forEach((perf) => {
-      if (perf.responseRate == null) return;
-      if (!best || perf.responseRate > best.responseRate) best = perf;
+      if (perf.progressionRate == null) return;
+      if (!best || perf.progressionRate > best.progressionRate) best = perf;
     });
     return best?.resumeId || null;
   })();

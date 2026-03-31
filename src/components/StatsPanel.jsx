@@ -47,7 +47,7 @@ export default function StatsPanel() {
   const resumeRows = useMemo(() => {
     return (resumes || []).map((r) => {
       const p = perf.byId.get(r.id);
-      const rate = p?.responseRate;
+      const rate = p?.progressionRate;
       const applicationCount = p?.applications || 0;
       const neededCount = Math.max(0, 5 - applicationCount);
       return {
@@ -90,21 +90,21 @@ export default function StatsPanel() {
         </div>
       </div>
 
-      {/* Compact response rate card */}
+      {/* Compact progression rate card */}
       <div className={[styles.bigStat, styles.compactStat].join(" ")}>
-        <div className={styles.bsLabel}>Response Rate</div>
+        <div className={styles.bsLabel}>Progression Rate</div>
         <div className={styles.compactValueRow}>
           <div className={styles.compactValue}>
-            {stats.responseRate}<em className={styles.compactUnit}>%</em>
+            {stats.progressionRate}<em className={styles.compactUnit}>%</em>
           </div>
           <div className={styles.compactSub}>
-            {stats.responded} of {stats.total} applications responded
+            {stats.progressed} of {stats.total} applications progressed past applied
           </div>
         </div>
         <div className={styles.bsBar}>
           <div
             className={styles.bsFill}
-            style={{ width: `${Math.min(stats.responseRate, 100)}%` }}
+            style={{ width: `${Math.min(stats.progressionRate, 100)}%` }}
           />
         </div>
       </div>
@@ -164,7 +164,7 @@ export default function StatsPanel() {
                       ].join(" ")}
                     >
                       {r.neededCount} more {r.neededCount === 1 ? "application" : "applications"} needed
-                      {" "}({r.applicationCount}/5) to calculate response rate.
+                      {" "}({r.applicationCount}/5) to calculate progression rate.
                     </span>
                   </span>
                 ) : (

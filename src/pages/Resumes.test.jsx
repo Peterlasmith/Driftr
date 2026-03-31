@@ -72,7 +72,7 @@ describe("Resumes page linked applications", () => {
           uploadDate: new Date("2026-02-01T00:00:00"),
           analyzedAt: null,
           appsCount: 3,
-          responseRate: 50,
+          progressionRate: 50,
           isBest: false,
           feedback: null
         }
@@ -86,7 +86,7 @@ describe("Resumes page linked applications", () => {
         uploadDate: new Date("2026-02-01T00:00:00"),
         analyzedAt: null,
         appsCount: 3,
-        responseRate: 50,
+        progressionRate: 50,
         isBest: false,
         feedback: null,
         analysisResult: null
@@ -97,7 +97,8 @@ describe("Resumes page linked applications", () => {
           jobTitle: "Senior Frontend Engineer",
           company: "Acme",
           dateApplied: new Date("2026-02-10T00:00:00"),
-          status: "Interview",
+          stage: "Interview",
+          outcome: "Active",
           jobUrl: "https://example.com/job/1"
         },
         {
@@ -105,7 +106,8 @@ describe("Resumes page linked applications", () => {
           jobTitle: "Product Engineer",
           company: "Northstar",
           dateApplied: new Date("2026-02-18T00:00:00"),
-          status: "Applied",
+          stage: "Applied",
+          outcome: "Active",
           jobUrl: ""
         }
       ],

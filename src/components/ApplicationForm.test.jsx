@@ -54,7 +54,8 @@ describe("ApplicationForm reset behavior", () => {
       open: true,
       saving: false,
       initialValue: null,
-      statusOptions: ["Applied", "Screening", "Interview", "Offer", "Not moving forward"],
+      stageOptions: ["Applied", "Screening", "Interview", "Offer"],
+      outcomeOptions: ["Active", "Not moving forward"],
       resumes: [],
       applications: [],
       onClose: jest.fn(),
@@ -86,8 +87,12 @@ describe("ApplicationForm reset behavior", () => {
     return container.querySelector('input[type="date"]');
   }
 
-  function getStatusSelect() {
-    return container.querySelector("select");
+  function getStageSelect() {
+    return container.querySelectorAll("select")[0];
+  }
+
+  function getOutcomeSelect() {
+    return container.querySelectorAll("select")[1];
   }
 
   function getNotesInput() {
@@ -115,7 +120,7 @@ describe("ApplicationForm reset behavior", () => {
     changeValue(getCompanyInput(), "First Company");
     changeValue(getLocationInput(), "Austin, TX");
     changeValue(getNotesInput(), "Some notes");
-    changeSelect(getStatusSelect(), "Interview");
+    changeSelect(getStageSelect(), "Interview");
 
     renderForm({ open: false, initialValue: null });
     renderForm({ open: true, initialValue: null });
@@ -124,7 +129,8 @@ describe("ApplicationForm reset behavior", () => {
     expect(getCompanyInput().value).toBe("");
     expect(getLocationInput().value).toBe("");
     expect(getNotesInput().value).toBe("");
-    expect(getStatusSelect().value).toBe("Applied");
+    expect(getStageSelect().value).toBe("Applied");
+    expect(getOutcomeSelect().value).toBe("Active");
     expect(getDateInput().value).toBe(todayInputValue());
   });
 
@@ -136,7 +142,8 @@ describe("ApplicationForm reset behavior", () => {
       location: "Remote",
       jobUrl: "https://example.com/jobs/1",
       dateApplied: new Date("2026-02-10T00:00:00"),
-      status: "Interview",
+      stage: "Interview",
+      outcome: "Not moving forward",
       notes: "Panel next week"
     };
 
@@ -145,7 +152,8 @@ describe("ApplicationForm reset behavior", () => {
     expect(getTitleInput().value).toBe("Senior Frontend Engineer");
     expect(getCompanyInput().value).toBe("Acme");
     expect(getLocationInput().value).toBe("Remote");
-    expect(getStatusSelect().value).toBe("Interview");
+    expect(getStageSelect().value).toBe("Interview");
+    expect(getOutcomeSelect().value).toBe("Not moving forward");
     expect(getDateInput().value).toBe("2026-02-10");
 
     renderForm({ open: false, initialValue });
@@ -154,7 +162,8 @@ describe("ApplicationForm reset behavior", () => {
     expect(getTitleInput().value).toBe("Senior Frontend Engineer");
     expect(getCompanyInput().value).toBe("Acme");
     expect(getLocationInput().value).toBe("Remote");
-    expect(getStatusSelect().value).toBe("Interview");
+    expect(getStageSelect().value).toBe("Interview");
+    expect(getOutcomeSelect().value).toBe("Not moving forward");
     expect(getDateInput().value).toBe("2026-02-10");
   });
 
@@ -164,7 +173,8 @@ describe("ApplicationForm reset behavior", () => {
       jobTitle: "Senior Frontend Engineer",
       company: "Acme",
       dateApplied: new Date("2026-02-10T00:00:00"),
-      status: "Interview"
+      stage: "Interview",
+      outcome: "Active"
     };
 
     renderForm({ open: true, initialValue });
@@ -175,7 +185,8 @@ describe("ApplicationForm reset behavior", () => {
 
     expect(getTitleInput().value).toBe("");
     expect(getCompanyInput().value).toBe("");
-    expect(getStatusSelect().value).toBe("Applied");
+    expect(getStageSelect().value).toBe("Applied");
+    expect(getOutcomeSelect().value).toBe("Active");
     expect(getDateInput().value).toBe(todayInputValue());
   });
 
@@ -196,7 +207,8 @@ describe("ApplicationForm reset behavior", () => {
       expect.objectContaining({
         jobTitle: "Role A",
         company: "Company A",
-        status: "Applied"
+        stage: "Applied",
+        outcome: "Active"
       })
     );
 
@@ -205,7 +217,8 @@ describe("ApplicationForm reset behavior", () => {
 
     expect(getTitleInput().value).toBe("");
     expect(getCompanyInput().value).toBe("");
-    expect(getStatusSelect().value).toBe("Applied");
+    expect(getStageSelect().value).toBe("Applied");
+    expect(getOutcomeSelect().value).toBe("Active");
     expect(getDateInput().value).toBe(todayInputValue());
   });
 });

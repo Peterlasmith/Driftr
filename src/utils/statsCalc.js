@@ -1,5 +1,5 @@
 import { hasReachedInterviewStage } from "./interviewTracking";
-import { isClosedOutStatus } from "./staleStatus";
+import { isClosedOutOutcome, normalizeApplicationStage } from "./staleStatus";
 
 export function daysSince(dateApplied) {
   if (!dateApplied) return null;
@@ -13,9 +13,11 @@ export function daysSince(dateApplied) {
 
 export function calcStats(applications) {
   const total = applications.length;
-  const active = applications.filter((a) => !isClosedOutStatus(a.status)).length;
-  const responded = applications.filter((a) => a.status !== "Applied").length;
-  const responseRate = total === 0 ? 0 : Math.round((responded / total) * 100);
+  const active = applications.filter((a) => !isClosedOutOutcome(a.outcome, a.status)).length;
+  const progressed = applications.filter(
+    (a) => normalizeApplicationStage(a.stage ?? a.status) !== "Applied"
+  ).length;
+  const progressionRate = total === 0 ? 0 : Math.round((progressed / total) * 100);
   const interviewReached = applications.filter(hasReachedInterviewStage).length;
   const interviewRate = total === 0 ? 0 : Math.round((interviewReached / total) * 100);
 
@@ -32,9 +34,9 @@ export function calcStats(applications) {
   return {
     total,
     active,
-    responseRate,
+    progressionRate,
     avgDaysSince,
-    responded,
+    progressed,
     interviews,
     interviewReached,
     interviewRate

@@ -21,20 +21,20 @@ describe("interview tracking helpers", () => {
 
   test("uses persisted flag and legacy fallbacks on reads", () => {
     expect(hasReachedInterviewStage({ status: "Rejected", interviewReached: true })).toBe(true);
-    expect(hasReachedInterviewStage({ status: "Screening" })).toBe(true);
+    expect(hasReachedInterviewStage({ stage: "Screening" })).toBe(true);
     expect(hasReachedInterviewStage({ status: "Rejected", rejectionReasonTags: ["SCREEN_REJECT"] })).toBe(true);
     expect(hasReachedInterviewStage({ status: "Rejected", rejectionReasonTags: ["UNKNOWN"] })).toBe(false);
   });
 
-  test("preserves interview history after moving backward in status", () => {
-    const current = { status: "Interview" };
-    expect(deriveInterviewReached(current, "Not moving forward", [])).toBe(true);
+  test("preserves interview history after moving backward in stage", () => {
+    const current = { stage: "Interview" };
+    expect(deriveInterviewReached(current, "Applied", [])).toBe(true);
     expect(deriveInterviewReached(current, "Applied", [])).toBe(true);
   });
 
   test("marks direct rejection with qualifying feedback as interview reached", () => {
-    expect(deriveInterviewReached(null, "Not moving forward", ["SCREEN_REJECT"])).toBe(true);
-    expect(deriveInterviewReached(null, "Not moving forward", ["INTERVIEW_REJECT"])).toBe(true);
-    expect(deriveInterviewReached(null, "Not moving forward", ["UNKNOWN"])).toBe(false);
+    expect(deriveInterviewReached(null, "Applied", ["SCREEN_REJECT"])).toBe(true);
+    expect(deriveInterviewReached(null, "Applied", ["INTERVIEW_REJECT"])).toBe(true);
+    expect(deriveInterviewReached(null, "Applied", ["UNKNOWN"])).toBe(false);
   });
 });

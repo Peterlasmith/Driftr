@@ -15,7 +15,7 @@ const FIELD_DEFS = [
   { key: "location", label: "Location", required: false },
   { key: "jobUrl", label: "Job URL", required: false },
   { key: "dateApplied", label: "Date Applied", required: true },
-  { key: "status", label: "Status", required: false },
+  { key: "stage", label: "Stage", required: false },
   { key: "resume", label: "Resume", required: false },
   { key: "notes", label: "Notes", required: false }
 ];
@@ -26,7 +26,7 @@ const HEADER_ALIASES = {
   location: ["location", "city", "state", "office"],
   jobUrl: ["job url", "url", "posting url", "application url", "link"],
   dateApplied: ["date applied", "applied", "application date", "date"],
-  status: ["status", "stage"],
+  stage: ["stage", "status"],
   resume: ["resume", "resume version", "cv", "resume name"],
   notes: ["notes", "note", "comments", "comment"]
 };

@@ -1,8 +1,8 @@
 const INTERVIEW_STAGE_STATUSES = new Set(["Screening", "Interview", "Offer"]);
 const INTERVIEW_REJECTION_TAGS = new Set(["SCREEN_REJECT", "INTERVIEW_REJECT"]);
 
-export function isInterviewStageStatus(status) {
-  return INTERVIEW_STAGE_STATUSES.has(status);
+export function isInterviewStage(stage) {
+  return INTERVIEW_STAGE_STATUSES.has(stage);
 }
 
 export function hasInterviewRejectionTag(tags) {
@@ -12,12 +12,15 @@ export function hasInterviewRejectionTag(tags) {
 
 export function hasReachedInterviewStage(application) {
   if (application?.interviewReached === true) return true;
-  if (isInterviewStageStatus(application?.status)) return true;
+  if (isInterviewStage(application?.stage)) return true;
+  if (isInterviewStage(application?.status)) return true;
   return hasInterviewRejectionTag(application?.rejectionReasonTags);
 }
 
-export function deriveInterviewReached(currentApplication, nextStatus, nextRejectionTags) {
+export function deriveInterviewReached(currentApplication, nextStage, nextRejectionTags) {
   if (hasReachedInterviewStage(currentApplication)) return true;
-  if (isInterviewStageStatus(nextStatus)) return true;
+  if (isInterviewStage(nextStage)) return true;
   return hasInterviewRejectionTag(nextRejectionTags);
 }
+
+export const isInterviewStageStatus = isInterviewStage;

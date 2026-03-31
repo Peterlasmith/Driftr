@@ -2,21 +2,23 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import ApplicationTable from "./components/ApplicationTable";
 import ApplicationForm from "./components/ApplicationForm";
 import {
-  APPLICATION_STATUS_OPTIONS,
+  APPLICATION_OUTCOME_OPTIONS,
+  APPLICATION_STAGE_OPTIONS,
   archiveApplication,
   createApplication,
   deleteApplication,
   dismissStaleStatusPrompt,
   subscribeToApplications,
   updateApplication,
-  updateApplicationStatusWithRejectionMeta
+  updateApplicationOutcomeWithRejectionMeta,
+  updateApplicationStage
 } from "./services/applications";
 import { useAuth } from "./auth/AuthProvider";
 import styles from "./App.module.css";
 import { subscribeToResumes } from "./services/resumes";
 import ApplicationCsvImportModal from "./components/ApplicationCsvImportModal";
 import { DEFAULT_USER_PREFERENCES, subscribeToUserPreferences } from "./services/userPreferences";
-import { getStaleStatusPromptState, normalizeApplicationStatus } from "./utils/staleStatus";
+import { getStaleStatusPromptState, normalizeApplicationOutcome, normalizeApplicationStage } from "./utils/staleStatus";
 
 function buildRecruiterFeedbackEmail(app) {
   const role = app?.jobTitle || "the role";
@@ -94,14 +96,14 @@ export default function Dashboard() {
   const visibleApplications = useMemo(
     () =>
       applicationsWithPromptState.filter(
-        (app) => normalizeApplicationStatus(app.status) !== "Not moving forward"
+        (app) => normalizeApplicationOutcome(app.outcome, app.status) !== "Not moving forward"
       ),
     [applicationsWithPromptState]
   );
   const closedOutApplications = useMemo(
     () =>
       applicationsWithPromptState.filter(
-        (app) => normalizeApplicationStatus(app.status) === "Not moving forward"
+        (app) => normalizeApplicationOutcome(app.outcome, app.status) === "Not moving forward"
       ),
     [applicationsWithPromptState]
   );
@@ -202,16 +204,16 @@ export default function Dashboard() {
     }
   }
 
-  async function handleStatusChange(app, status) {
-    if (!APPLICATION_STATUS_OPTIONS.includes(status)) return;
+  async function handleStageChange(app, stage) {
+    if (!APPLICATION_STAGE_OPTIONS.includes(stage)) return;
     if (!app?.id) return;
 
     setError("");
     setStatusUpdatePendingIds((current) => ({ ...current, [app.id]: true }));
     try {
-      await updateApplicationStatusWithRejectionMeta(user.uid, app.id, status);
+      await updateApplicationStage(user.uid, app.id, stage);
     } catch (err) {
-      setError(err?.message || "Failed to update status.");
+      setError(err?.message || "Failed to update stage.");
     } finally {
       setStatusUpdatePendingIds((current) => {
         const next = { ...current };
@@ -239,9 +241,9 @@ export default function Dashboard() {
     if (!app?.id) return;
     setError("");
     try {
-      await updateApplicationStatusWithRejectionMeta(user.uid, app.id, "Not moving forward");
+      await updateApplicationOutcomeWithRejectionMeta(user.uid, app.id, "Not moving forward");
     } catch (err) {
-      setError(err?.message || "Failed to update status.");
+      setError(err?.message || "Failed to update outcome.");
     }
   }
 
@@ -249,7 +251,7 @@ export default function Dashboard() {
     if (!app?.id) return;
     setError("");
     try {
-      await dismissStaleStatusPrompt(user.uid, app.id, app.status);
+      await dismissStaleStatusPrompt(user.uid, app.id, normalizeApplicationStage(app.stage ?? app.status));
     } catch (err) {
       setError(err?.message || "Failed to save reminder preference.");
     }
@@ -316,19 +318,20 @@ export default function Dashboard() {
           loading={loading}
           onEdit={openEdit}
           onDelete={handleDelete}
-          onStatusChange={handleStatusChange}
+          onStatusChange={handleStageChange}
           onArchive={handleArchive}
           onMoveToNotMovingForward={handleMoveToNotMovingForward}
           onDismissStalePrompt={handleDismissStalePrompt}
           onRequestRecruiterFeedback={handleRequestRecruiterFeedback}
-          statusOptions={APPLICATION_STATUS_OPTIONS}
+          stageOptions={APPLICATION_STAGE_OPTIONS}
         />
       </div>
 
       <ApplicationForm
         open={formOpen}
         saving={saving}
-        statusOptions={APPLICATION_STATUS_OPTIONS}
+        stageOptions={APPLICATION_STAGE_OPTIONS}
+        outcomeOptions={APPLICATION_OUTCOME_OPTIONS}
         initialValue={editing}
         resumes={resumes}
         applications={applications}

@@ -23,7 +23,7 @@ describe("ApplicationTable stale reminders", () => {
       onMoveToNotMovingForward: jest.fn(),
       onDismissStalePrompt: jest.fn(),
       onRequestRecruiterFeedback: jest.fn(),
-      statusOptions: ["Applied", "Screening", "Interview", "Offer", "Not moving forward"],
+      stageOptions: ["Applied", "Screening", "Interview", "Offer"],
       ...overrides
     };
 
@@ -56,13 +56,14 @@ describe("ApplicationTable stale reminders", () => {
           jobTitle: "Frontend Engineer",
           company: "Acme",
           dateApplied: new Date("2026-01-15T00:00:00"),
-          status: "Applied",
+          stage: "Applied",
+          outcome: "Active",
           staleStatusPrompt: { shouldPrompt: true }
         }
       ]
     });
 
-    expect(container.textContent).toContain("It's been over 30 days with no status update.");
+    expect(container.textContent).toContain("It's been over 30 days with no stage update.");
 
     const buttons = Array.from(container.querySelectorAll("button"));
     const moveButton = buttons.find((button) => button.textContent === "Move to Not moving forward");
@@ -89,7 +90,8 @@ describe("ApplicationTable stale reminders", () => {
           jobTitle: "Frontend Engineer",
           company: "Acme",
           dateApplied: new Date("2026-01-15T00:00:00"),
-          status: "Applied",
+          stage: "Applied",
+          outcome: "Active",
           staleStatusPrompt: { shouldPrompt: true }
         }
       ],
@@ -98,7 +100,7 @@ describe("ApplicationTable stale reminders", () => {
       }
     });
 
-    expect(container.textContent).not.toContain("It's been over 30 days with no status update.");
+    expect(container.textContent).not.toContain("It's been over 30 days with no stage update.");
     expect(container.querySelector("select").disabled).toBe(true);
   });
 });

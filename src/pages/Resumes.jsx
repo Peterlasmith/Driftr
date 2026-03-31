@@ -340,9 +340,9 @@ export default function Resumes() {
                 <div className={styles.metricsGrid}>
                   <MetricCard label="Applications" value={selectedResume.appsCount} />
                   <MetricCard
-                    label="Response Rate"
-                    value={selectedResume.responseRate == null ? "—" : `${selectedResume.responseRate}%`}
-                    valueClass={selectedResume.responseRate == null ? "" : styles.resumePositive}
+                    label="Progression Rate"
+                    value={selectedResume.progressionRate == null ? "—" : `${selectedResume.progressionRate}%`}
+                    valueClass={selectedResume.progressionRate == null ? "" : styles.resumePositive}
                   />
                   <MetricCard label="Interviews" value={selectedStats.interviews} />
                   <MetricCard
@@ -672,7 +672,7 @@ function ApplicationsSection({ applications }) {
                 <div className={styles.applicationMeta}>
                   <span>{formatAppliedDate(app.dateApplied)}</span>
                   <span className={styles.applicationMetaDot}>•</span>
-                  <span>{app.status || "Applied"}</span>
+                  <span>{app.stage || app.status || "Applied"}</span>
                 </div>
               </div>
               {app.jobUrl ? (
