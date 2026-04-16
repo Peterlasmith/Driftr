@@ -45,6 +45,20 @@ function scoreClass(score) {
   return styles.scoreLow;
 }
 
+function getResumePreviewMode(resume) {
+  const fileType = String(resume?.fileType || "").toLowerCase();
+  const fileName = String(resume?.fileName || "").toLowerCase();
+  if (!resume?.fileUrl) return "none";
+  if (fileType.includes("pdf") || fileName.endsWith(".pdf")) return "pdf";
+  if (
+    fileType.includes("officedocument.wordprocessingml.document") ||
+    fileName.endsWith(".docx")
+  ) {
+    return "docx";
+  }
+  return "none";
+}
+
 export default function Resumes() {
   const { user } = useAuth();
   const {
@@ -72,6 +86,7 @@ export default function Resumes() {
   const [renameValue, setRenameValue] = useState("");
   const [renameSaving, setRenameSaving] = useState(false);
   const [renameError, setRenameError] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const renameInputRef = useRef(null);
   const addMenuRef = useRef(null);
@@ -107,6 +122,8 @@ export default function Resumes() {
   const selectedAnalysisError = selectedResume?.id
     ? analysisErrorById.get(selectedResume.id) || ""
     : "";
+  const previewMode = getResumePreviewMode(selectedResume);
+  const canPreviewSelected = previewMode !== "none";
 
   const strengths = useMemo(() => toList(selectedAnalysis?.keyStrengths), [selectedAnalysis]);
   const signals = useMemo(() => toList(selectedAnalysis?.senioritySignals), [selectedAnalysis]);
@@ -128,6 +145,28 @@ export default function Resumes() {
     if (!renameOpen) return;
     requestAnimationFrame(() => renameInputRef.current?.focus?.());
   }, [renameOpen]);
+
+  useEffect(() => {
+    if (!previewOpen) return undefined;
+
+    function handleEscape(event) {
+      if (event.key === "Escape") setPreviewOpen(false);
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [previewOpen]);
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    if (!selectedResume?.fileUrl) {
+      setPreviewOpen(false);
+      return;
+    }
+    if (previewMode === "none") {
+      setPreviewOpen(false);
+    }
+  }, [previewMode, previewOpen, selectedResume]);
 
   function openRenameModal(resume) {
     if (!resume) return;
@@ -182,6 +221,14 @@ export default function Resumes() {
   function handleDownload(resume) {
     if (!resume?.fileUrl) return;
     window.open(resume.fileUrl, "_blank", "noopener,noreferrer");
+    setAddMenuOpen(false);
+  }
+
+  function handlePreview(resume) {
+    if (!resume?.fileUrl) return;
+    const mode = getResumePreviewMode(resume);
+    if (mode === "none") return;
+    setPreviewOpen(true);
     setAddMenuOpen(false);
   }
 
@@ -262,6 +309,15 @@ export default function Resumes() {
               <div className={`${shell.addMenu} ${styles.actionMenu}`} role="menu" aria-label="Resume actions">
                 <button className={shell.addMenuItem} type="button" role="menuitem" onClick={openUpload}>
                   Upload Resume
+                </button>
+                <button
+                  className={shell.addMenuItem}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handlePreview(selectedResume)}
+                  disabled={!canPreviewSelected}
+                >
+                  Preview Selected
                 </button>
                 <button
                   className={shell.addMenuItem}
@@ -603,6 +659,74 @@ export default function Resumes() {
               >
                 {renameSaving ? "Saving..." : "Save"}
               </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {previewOpen && selectedResume ? (
+        <div
+          className={styles.previewBackdrop}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="resume-preview-title"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div className={styles.previewModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.previewHeader}>
+              <div className={styles.previewHeaderText}>
+                <div className={styles.previewTitle} id="resume-preview-title">
+                  Resume preview
+                </div>
+                <div className={styles.previewMeta}>
+                  {selectedResume.versionName || "Untitled resume"}
+                  <span className={styles.previewMetaDot}>•</span>
+                  <span>{selectedResume.fileName || "—"}</span>
+                </div>
+              </div>
+
+              <div className={styles.previewActions}>
+                <button
+                  className={styles.previewDownload}
+                  type="button"
+                  onClick={() => handleDownload(selectedResume)}
+                >
+                  Open original
+                </button>
+                <button
+                  className={styles.previewClose}
+                  type="button"
+                  onClick={() => setPreviewOpen(false)}
+                  aria-label="Close preview"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.previewBody}>
+              {previewMode === "pdf" ? (
+                <iframe
+                  title={`Resume preview: ${selectedResume.fileName || selectedResume.versionName || "resume"}`}
+                  className={styles.previewFrame}
+                  src={selectedResume.fileUrl}
+                />
+              ) : (
+                <div className={styles.previewFallback}>
+                  <div className={styles.previewFallbackTitle}>Preview isn’t available for DOCX yet.</div>
+                  <div className={styles.previewFallbackText}>
+                    Open the original file to view or download it. PDF preview is supported inline in
+                    this version.
+                  </div>
+                  <button
+                    className={styles.previewFallbackButton}
+                    type="button"
+                    onClick={() => handleDownload(selectedResume)}
+                  >
+                    Open DOCX
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

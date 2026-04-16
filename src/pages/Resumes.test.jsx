@@ -37,16 +37,19 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 describe("Resumes page linked applications", () => {
   let container;
   let root;
+  let openSpy;
 
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    openSpy = jest.spyOn(window, "open").mockImplementation(() => null);
   });
 
   afterEach(() => {
     useAuth.mockReset();
     useResumesWorkspace.mockReset();
+    openSpy.mockRestore();
 
     act(() => {
       root.unmount();
@@ -67,6 +70,7 @@ describe("Resumes page linked applications", () => {
           id: "resume-1",
           versionName: "Resume v3",
           fileName: "resume.pdf",
+          fileUrl: "https://example.com/resume.pdf",
           fileSize: 1000,
           fileType: "application/pdf",
           uploadDate: new Date("2026-02-01T00:00:00"),
@@ -81,6 +85,7 @@ describe("Resumes page linked applications", () => {
         id: "resume-1",
         versionName: "Resume v3",
         fileName: "resume.pdf",
+        fileUrl: "https://example.com/resume.pdf",
         fileSize: 1000,
         fileType: "application/pdf",
         uploadDate: new Date("2026-02-01T00:00:00"),
@@ -151,5 +156,81 @@ describe("Resumes page linked applications", () => {
     expect(container.textContent).toContain(
       "No non-archived applications are linked to this resume yet."
     );
+  });
+
+  test("shows a preview action for resumes with a file and opens inline PDF preview", () => {
+    renderPage();
+
+    const menuToggle = container.querySelector('button[aria-label="Open resume actions menu"]');
+    act(() => {
+      menuToggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const previewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Preview Selected"
+    );
+    expect(previewButton).toBeTruthy();
+    expect(previewButton.disabled).toBe(false);
+
+    act(() => {
+      previewButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("Resume preview");
+    const frame = container.querySelector("iframe");
+    expect(frame).toBeTruthy();
+    expect(frame.getAttribute("src")).toBe("https://example.com/resume.pdf");
+  });
+
+  test("shows a DOCX fallback instead of an inline frame", () => {
+    renderPage({
+      rows: [
+        {
+          id: "resume-1",
+          versionName: "Resume v3",
+          fileName: "resume.docx",
+          fileUrl: "https://example.com/resume.docx",
+          fileSize: 1000,
+          fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          uploadDate: new Date("2026-02-01T00:00:00"),
+          analyzedAt: null,
+          appsCount: 3,
+          progressionRate: 50,
+          isBest: false,
+          feedback: null
+        }
+      ],
+      selectedResume: {
+        id: "resume-1",
+        versionName: "Resume v3",
+        fileName: "resume.docx",
+        fileUrl: "https://example.com/resume.docx",
+        fileSize: 1000,
+        fileType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        uploadDate: new Date("2026-02-01T00:00:00"),
+        analyzedAt: null,
+        appsCount: 3,
+        progressionRate: 50,
+        isBest: false,
+        feedback: null,
+        analysisResult: null
+      }
+    });
+
+    const menuToggle = container.querySelector('button[aria-label="Open resume actions menu"]');
+    act(() => {
+      menuToggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const previewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Preview Selected"
+    );
+
+    act(() => {
+      previewButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("Preview isn’t available for DOCX yet.");
+    expect(container.querySelector("iframe")).toBeNull();
   });
 });
