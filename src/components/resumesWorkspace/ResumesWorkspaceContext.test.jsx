@@ -8,11 +8,12 @@ jest.mock("../../services/applications", () => ({
 }));
 
 jest.mock("../../services/resumes", () => ({
-  subscribeToResumes: jest.fn()
+  subscribeToResumes: jest.fn(),
+  relinkLegacyApplications: jest.fn(() => Promise.resolve(0))
 }));
 
 const { subscribeToApplications } = require("../../services/applications");
-const { subscribeToResumes } = require("../../services/resumes");
+const { subscribeToResumes, relinkLegacyApplications } = require("../../services/resumes");
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -73,6 +74,8 @@ describe("ResumesWorkspaceProvider", () => {
   afterEach(() => {
     subscribeToApplications.mockReset();
     subscribeToResumes.mockReset();
+    relinkLegacyApplications.mockReset();
+    relinkLegacyApplications.mockImplementation(() => Promise.resolve(0));
 
     act(() => {
       root.unmount();

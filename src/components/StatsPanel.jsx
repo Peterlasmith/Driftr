@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { subscribeToApplications } from "../services/applications";
-import { subscribeToResumes } from "../services/resumes";
+import { relinkLegacyApplications, subscribeToResumes } from "../services/resumes";
 import { computeResumePerformance } from "../services/resumePerformance";
 import { calcStats, getGreeting } from "../utils/statsCalc";
 import styles from "./StatsPanel.module.css";
@@ -31,6 +31,12 @@ export default function StatsPanel() {
     );
     return () => unsub();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (!resumes.length || !applications.length) return;
+    Promise.resolve(relinkLegacyApplications(user.uid, resumes, applications)).catch(() => {});
+  }, [user?.uid, resumes, applications]);
 
   const nonArchived = useMemo(
     () => applications.filter((app) => !app.archivedAt),

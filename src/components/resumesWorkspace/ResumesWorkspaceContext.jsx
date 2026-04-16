@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { subscribeToApplications } from "../../services/applications";
-import { subscribeToResumes } from "../../services/resumes";
+import { relinkLegacyApplications, subscribeToResumes } from "../../services/resumes";
 import { computeResumePerformance } from "../../services/resumePerformance";
 import { calcStats } from "../../utils/statsCalc";
 
@@ -72,6 +72,12 @@ export function ResumesWorkspaceProvider({ userId, children }) {
       unsubApplications();
     };
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    if (!resumes.length || !applications.length) return;
+    Promise.resolve(relinkLegacyApplications(userId, resumes, applications)).catch(() => {});
+  }, [userId, resumes, applications]);
 
   const perf = useMemo(() => computeResumePerformance(resumes, applications), [resumes, applications]);
 

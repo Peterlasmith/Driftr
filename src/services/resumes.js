@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
 import { db, storage } from "../config/firebase";
+import { findLegacyResumeRelinks } from "./resumeRelinking";
 
 const RESUMES_COLLECTION = "resumes";
 const APPLICATIONS_COLLECTION = "applications";
@@ -141,6 +142,24 @@ export async function renameResume(userId, resumeId, nextName) {
     versionName: clean,
     updatedAt: serverTimestamp()
   });
+}
+
+export async function relinkLegacyApplications(userId, resumes, applications) {
+  if (!userId) throw new Error("relinkLegacyApplications requires userId");
+
+  const relinks = findLegacyResumeRelinks(resumes, applications);
+  if (relinks.length === 0) return 0;
+
+  const batch = writeBatch(db);
+  relinks.forEach(({ applicationId, resumeId }) => {
+    batch.update(doc(db, APPLICATIONS_COLLECTION, applicationId), {
+      resumeVersionId: resumeId,
+      resumeVersion: null,
+      updatedAt: serverTimestamp()
+    });
+  });
+  await batch.commit();
+  return relinks.length;
 }
 
 export async function deleteResumeAndUnlinkApplications(userId, resume) {
