@@ -54,7 +54,7 @@ export default function ResumesSidebar() {
                   <span>{resume.appsCount} apps</span>
                   <span className={styles.metaDot}>•</span>
                   <span className={resume.interviewRate == null ? styles.muted : styles.positive}>
-                    {resume.interviewRate == null ? "—" : `${resume.interviewRate}% interview`}
+                    {resume.interviewRate == null ? "—" : `${resume.interviewRate}% interview${resume.isBest ? "" : resume.appsCount > 0 && resume.appsCount < 3 ? " low sample" : ""}`}
                   </span>
                   <span className={styles.metaDot}>•</span>
                   <span>{formatResumeBytes(resume.fileSize)}</span>

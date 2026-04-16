@@ -55,14 +55,16 @@ export default function StatsPanel() {
       const p = perf.byId.get(r.id);
       const rate = p?.interviewRate;
       const applicationCount = p?.applications || 0;
-      const neededCount = Math.max(0, 5 - applicationCount);
+      const neededCount = Math.max(0, 1 - applicationCount);
+      const lowConfidence = Boolean(p?.lowConfidence);
       return {
         id: r.id,
         name: r.versionName || "Untitled",
         rate,
-        rateLabel: rate == null ? "needs data" : `${rate}%`,
+        rateLabel: rate == null ? "needs data" : `${rate}%${lowConfidence ? " low sample" : ""}`,
         applicationCount,
-        neededCount
+        neededCount,
+        lowConfidence
       };
     });
   }, [resumes, perf]);
@@ -170,7 +172,33 @@ export default function StatsPanel() {
                       ].join(" ")}
                     >
                       {r.neededCount} more linked {r.neededCount === 1 ? "application" : "applications"} needed
-                      {" "}({r.applicationCount}/5 total, including not moving forward) to calculate interview rate.
+                      {" "}({r.applicationCount}/1 total, including not moving forward) to calculate interview rate.
+                    </span>
+                  </span>
+                ) : r.lowConfidence ? (
+                  <span className={styles.rbPctTooltipWrap}>
+                    <button
+                      type="button"
+                      className={styles.rbPctTrigger}
+                      tabIndex={0}
+                      aria-describedby={`low-sample-tip-${r.id}`}
+                      onMouseEnter={() => setActiveNeedsDataId(r.id)}
+                      onMouseLeave={() => setActiveNeedsDataId((curr) => (curr === r.id ? null : curr))}
+                      onFocus={() => setActiveNeedsDataId(r.id)}
+                      onBlur={() => setActiveNeedsDataId((curr) => (curr === r.id ? null : curr))}
+                    >
+                      {r.rateLabel}
+                    </button>
+                    <span
+                      id={`low-sample-tip-${r.id}`}
+                      role="tooltip"
+                      className={[
+                        styles.rbTooltip,
+                        activeNeedsDataId === r.id ? styles.rbTooltipVisible : ""
+                      ].join(" ")}
+                    >
+                      Based on {r.applicationCount} linked {r.applicationCount === 1 ? "application" : "applications"}.
+                      {" "}Best performer badges start at 3 linked applications.
                     </span>
                   </span>
                 ) : (

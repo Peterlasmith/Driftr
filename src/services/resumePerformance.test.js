@@ -24,11 +24,12 @@ describe("computeResumePerformance", () => {
     expect(byId.get("resume-1")).toMatchObject({
       applications: 5,
       interviewReached: 2,
-      interviewRate: 40
+      interviewRate: 40,
+      lowConfidence: false
     });
   });
 
-  test("keeps interview rate null until a resume has five linked applications", () => {
+  test("shows interview rate for small samples while marking them low confidence", () => {
     const { byId } = computeResumePerformance(
       [{ id: "resume-1" }],
       [
@@ -42,13 +43,47 @@ describe("computeResumePerformance", () => {
     expect(byId.get("resume-1")).toMatchObject({
       applications: 4,
       interviewReached: 2,
-      interviewRate: null
+      interviewRate: 50,
+      lowConfidence: false
     });
   });
 
-  test("selects the best resume using linked interview rate", () => {
+  test("keeps interview rate hidden only when a resume has no linked applications", () => {
+    const { byId } = computeResumePerformance([{ id: "resume-1" }], []);
+
+    expect(byId.get("resume-1")).toMatchObject({
+      applications: 0,
+      interviewReached: 0,
+      interviewRate: null,
+      lowConfidence: false
+    });
+  });
+
+  test("marks one- and two-application samples as low confidence", () => {
+    const { byId } = computeResumePerformance(
+      [{ id: "resume-1" }, { id: "resume-2" }],
+      [
+        { resumeVersionId: "resume-1", stage: "Screening" },
+        { resumeVersionId: "resume-2", stage: "Applied" },
+        { resumeVersionId: "resume-2", stage: "Applied", outcome: "Not moving forward" }
+      ]
+    );
+
+    expect(byId.get("resume-1")).toMatchObject({
+      applications: 1,
+      interviewRate: 100,
+      lowConfidence: true
+    });
+    expect(byId.get("resume-2")).toMatchObject({
+      applications: 2,
+      interviewRate: 0,
+      lowConfidence: true
+    });
+  });
+
+  test("selects the best resume using linked interview rate once it has three linked applications", () => {
     const { byId, bestResumeId } = computeResumePerformance(
-      [{ id: "resume-1" }, { id: "resume-2" }, { id: "resume-3" }],
+      [{ id: "resume-1" }, { id: "resume-2" }, { id: "resume-3" }, { id: "resume-4" }],
       [
         { resumeVersionId: "resume-1", stage: "Interview" },
         { resumeVersionId: "resume-1", stage: "Applied", rejectionReasonTags: ["SCREEN_REJECT"] },
@@ -57,16 +92,18 @@ describe("computeResumePerformance", () => {
         { resumeVersionId: "resume-1", stage: "Applied", archivedAt: new Date("2026-01-01T00:00:00") },
         { resumeVersionId: "resume-2", stage: "Applied" },
         { resumeVersionId: "resume-2", stage: "Applied", outcome: "Not moving forward" },
-        { resumeVersionId: "resume-2", stage: "Screening", archivedAt: new Date("2026-01-02T00:00:00") },
-        { resumeVersionId: "resume-2", stage: "Applied", interviewReached: true },
-        { resumeVersionId: "resume-2", stage: "Offer" },
-        { resumeVersionId: "resume-3", stage: "Offer" }
+        { resumeVersionId: "resume-2", stage: "Screening" },
+        { resumeVersionId: "resume-3", stage: "Offer" },
+        { resumeVersionId: "resume-4", stage: "Offer" },
+        { resumeVersionId: "resume-4", stage: "Applied", interviewReached: true },
+        { resumeVersionId: "resume-4", stage: "Applied" }
       ]
     );
 
     expect(byId.get("resume-1")?.interviewRate).toBe(40);
-    expect(byId.get("resume-2")?.interviewRate).toBe(60);
-    expect(byId.get("resume-3")?.interviewRate).toBe(null);
-    expect(bestResumeId).toBe("resume-2");
+    expect(byId.get("resume-2")).toMatchObject({ interviewRate: 33, lowConfidence: false });
+    expect(byId.get("resume-3")).toMatchObject({ interviewRate: 100, lowConfidence: true });
+    expect(byId.get("resume-4")).toMatchObject({ interviewRate: 67, lowConfidence: false });
+    expect(bestResumeId).toBe("resume-4");
   });
 });
