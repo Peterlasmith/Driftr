@@ -687,13 +687,6 @@ export default function Resumes() {
 
               <div className={styles.previewActions}>
                 <button
-                  className={styles.previewDownload}
-                  type="button"
-                  onClick={() => handleDownload(selectedResume)}
-                >
-                  Open original
-                </button>
-                <button
                   className={styles.previewClose}
                   type="button"
                   onClick={() => setPreviewOpen(false)}
@@ -715,16 +708,9 @@ export default function Resumes() {
                 <div className={styles.previewFallback}>
                   <div className={styles.previewFallbackTitle}>Preview isn’t available for DOCX yet.</div>
                   <div className={styles.previewFallbackText}>
-                    Open the original file to view or download it. PDF preview is supported inline in
-                    this version.
+                    DOCX files can’t be previewed inline in this version. PDF preview is supported
+                    directly in the app.
                   </div>
-                  <button
-                    className={styles.previewFallbackButton}
-                    type="button"
-                    onClick={() => handleDownload(selectedResume)}
-                  >
-                    Open DOCX
-                  </button>
                 </div>
               )}
             </div>
