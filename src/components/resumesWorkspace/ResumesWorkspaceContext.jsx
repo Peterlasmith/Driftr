@@ -87,7 +87,7 @@ export function ResumesWorkspaceProvider({ userId, children }) {
       return {
         ...resume,
         appsCount: p?.applications ?? 0,
-        progressionRate: p?.progressionRate,
+        interviewRate: p?.interviewRate,
         isBest: Boolean(perf.bestResumeId && perf.bestResumeId === resume.id)
       };
     });

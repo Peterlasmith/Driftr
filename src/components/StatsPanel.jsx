@@ -53,7 +53,7 @@ export default function StatsPanel() {
   const resumeRows = useMemo(() => {
     return (resumes || []).map((r) => {
       const p = perf.byId.get(r.id);
-      const rate = p?.progressionRate;
+      const rate = p?.interviewRate;
       const applicationCount = p?.applications || 0;
       const neededCount = Math.max(0, 5 - applicationCount);
       return {
@@ -142,7 +142,7 @@ export default function StatsPanel() {
       {/* Resume performance */}
       {resumeRows.length > 0 ? (
         <div className={styles.resumeBox}>
-          <div className={styles.rbTitle}>Resume Performance</div>
+          <div className={styles.rbTitle}>Resume Interview Rate</div>
           {resumeRows.map((r) => (
             <div key={r.id} className={styles.rbItem}>
               <div className={styles.rbRow}>
@@ -170,7 +170,7 @@ export default function StatsPanel() {
                       ].join(" ")}
                     >
                       {r.neededCount} more linked {r.neededCount === 1 ? "application" : "applications"} needed
-                      {" "}({r.applicationCount}/5 total, including not moving forward) to calculate progression rate.
+                      {" "}({r.applicationCount}/5 total, including not moving forward) to calculate interview rate.
                     </span>
                   </span>
                 ) : (

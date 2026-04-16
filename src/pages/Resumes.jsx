@@ -396,9 +396,9 @@ export default function Resumes() {
                 <div className={styles.metricsGrid}>
                   <MetricCard label="Applications" value={selectedResume.appsCount} />
                   <MetricCard
-                    label="Progression Rate"
-                    value={selectedResume.progressionRate == null ? "—" : `${selectedResume.progressionRate}%`}
-                    valueClass={selectedResume.progressionRate == null ? "" : styles.resumePositive}
+                    label="Interview Rate"
+                    value={selectedResume.interviewRate == null ? "—" : `${selectedResume.interviewRate}%`}
+                    valueClass={selectedResume.interviewRate == null ? "" : styles.resumePositive}
                   />
                   <MetricCard label="Interviews" value={selectedStats.interviews} />
                   <MetricCard

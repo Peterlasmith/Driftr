@@ -64,9 +64,9 @@ export default function ApplicationForm({
   const resumeOptions = useMemo(() => {
     const rows = (resumes || []).map((r) => {
       const perf = resumePerf.byId.get(r.id);
-      const rate = perf?.progressionRate;
+      const rate = perf?.interviewRate;
       const appsCount = perf?.applications ?? 0;
-      const labelRate = rate == null ? "Not enough linked app history" : `${rate}% progression rate`;
+      const labelRate = rate == null ? "Not enough linked app history" : `${rate}% interview rate`;
       const isBest = resumePerf.bestResumeId && resumePerf.bestResumeId === r.id;
       const star = isBest ? " ⭐" : "";
       return {

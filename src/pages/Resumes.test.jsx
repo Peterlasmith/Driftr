@@ -76,7 +76,7 @@ describe("Resumes page linked applications", () => {
           uploadDate: new Date("2026-02-01T00:00:00"),
           analyzedAt: null,
           appsCount: 3,
-          progressionRate: 50,
+          interviewRate: 50,
           isBest: false,
           feedback: null
         }
@@ -91,7 +91,7 @@ describe("Resumes page linked applications", () => {
         uploadDate: new Date("2026-02-01T00:00:00"),
         analyzedAt: null,
         appsCount: 3,
-        progressionRate: 50,
+        interviewRate: 50,
         isBest: false,
         feedback: null,
         analysisResult: null
@@ -195,7 +195,7 @@ describe("Resumes page linked applications", () => {
           uploadDate: new Date("2026-02-01T00:00:00"),
           analyzedAt: null,
           appsCount: 3,
-          progressionRate: 50,
+          interviewRate: 50,
           isBest: false,
           feedback: null
         }
@@ -210,7 +210,7 @@ describe("Resumes page linked applications", () => {
         uploadDate: new Date("2026-02-01T00:00:00"),
         analyzedAt: null,
         appsCount: 3,
-        progressionRate: 50,
+        interviewRate: 50,
         isBest: false,
         feedback: null,
         analysisResult: null

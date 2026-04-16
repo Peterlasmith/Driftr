@@ -53,8 +53,8 @@ export default function ResumesSidebar() {
                 <div className={styles.rowMeta}>
                   <span>{resume.appsCount} apps</span>
                   <span className={styles.metaDot}>•</span>
-                  <span className={resume.progressionRate == null ? styles.muted : styles.positive}>
-                    {resume.progressionRate == null ? "—" : `${resume.progressionRate}%`}
+                  <span className={resume.interviewRate == null ? styles.muted : styles.positive}>
+                    {resume.interviewRate == null ? "—" : `${resume.interviewRate}% interview`}
                   </span>
                   <span className={styles.metaDot}>•</span>
                   <span>{formatResumeBytes(resume.fileSize)}</span>
