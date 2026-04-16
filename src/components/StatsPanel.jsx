@@ -163,8 +163,8 @@ export default function StatsPanel() {
                         activeNeedsDataId === r.id ? styles.rbTooltipVisible : ""
                       ].join(" ")}
                     >
-                      {r.neededCount} more {r.neededCount === 1 ? "application" : "applications"} needed
-                      {" "}({r.applicationCount}/5) to calculate progression rate.
+                      {r.neededCount} more linked {r.neededCount === 1 ? "application" : "applications"} needed
+                      {" "}({r.applicationCount}/5 total, including not moving forward) to calculate progression rate.
                     </span>
                   </span>
                 ) : (

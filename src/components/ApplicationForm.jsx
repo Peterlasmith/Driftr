@@ -66,7 +66,7 @@ export default function ApplicationForm({
       const perf = resumePerf.byId.get(r.id);
       const rate = perf?.progressionRate;
       const appsCount = perf?.applications ?? 0;
-      const labelRate = rate == null ? "Not enough data" : `${rate}% progression rate`;
+      const labelRate = rate == null ? "Not enough linked app history" : `${rate}% progression rate`;
       const isBest = resumePerf.bestResumeId && resumePerf.bestResumeId === r.id;
       const star = isBest ? " ⭐" : "";
       return {

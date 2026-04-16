@@ -1,5 +1,7 @@
 import { normalizeApplicationStage } from "../utils/staleStatus";
 
+// Resume performance is a historical metric over all linked applications.
+// Archived and closed-out rows still count if they are attached to a resume.
 export function computeResumePerformance(resumes, applications) {
   const byId = new Map();
   (resumes || []).forEach((r) => {
