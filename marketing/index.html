@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#181713">
+  <meta name="description" content="Turn a scattered job search into a clear path. Track every application, measure response rates, and use AI resume analysis to see what to fix.">
+  <title>Driftrai — Find the signal in your job search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #181713;
+      --ink-2: #25231e;
+      --paper: #f4efe5;
+      --paper-2: #e9e1d2;
+      --white: #fffdf8;
+      --rust: #d25f35;
+      --rust-dark: #9d3d20;
+      --sage: #a9bd9b;
+      --line-dark: rgba(244,239,229,.14);
+      --line-light: rgba(24,23,19,.16);
+      --sans: "DM Sans", sans-serif;
+      --serif: "Fraunces", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(--sans); overflow-x: hidden; }
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid #f4b49d; outline-offset: 4px; }
+    .skip { position: fixed; top: 10px; left: 10px; z-index: 1000; padding: .7rem 1rem; background: var(--paper); color: var(--ink); transform: translateY(-150%); }
+    .skip:focus { transform: translateY(0); }
+    .wrap { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
+    .serif { font-family: var(--serif); }
+    .rust { color: var(--rust); }
+    .eyebrow { display: flex; align-items: center; gap: .7rem; margin: 0 0 1.35rem; font-size: .7rem; font-weight: 600; line-height: 1; letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 24px; height: 2px; background: currentColor; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: .8rem; min-height: 50px; padding: .8rem 1.25rem; border: 1px solid transparent; border-radius: 2px; text-decoration: none; font-size: .86rem; font-weight: 600; transition: transform .2s, background .2s, color .2s; }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background: var(--rust); color: var(--white); }
+    .button-primary:hover { background: #e06a3f; }
+    .button-dark { background: var(--ink); color: var(--white); }
+    .button-dark:hover { background: var(--rust-dark); }
+    .arrow { font-size: 1.1rem; }
+
+    .nav { position: absolute; inset: 0 0 auto; z-index: 20; border-bottom: 1px solid var(--line-dark); }
+    .nav-inner { height: 76px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: inline-flex; align-items: center; gap: .58rem; font: 500 1.2rem/1 var(--serif); text-decoration: none; letter-spacing: -.02em; }
+    .brand img { width: 31px; height: 31px; object-fit: contain; }
+    .nav-links { display: flex; align-items: center; gap: 1.8rem; }
+    .nav-links > a:not(.button) { color: rgba(244,239,229,.7); font-size: .8rem; text-decoration: none; }
+    .nav-links > a:not(.button):hover { color: var(--white); }
+    .nav .button { min-height: 40px; padding: .55rem 1rem; }
+
+    .hero { position: relative; min-height: 890px; display: grid; align-items: center; padding: 140px 0 90px; isolation: isolate; overflow: hidden; }
+    .maze { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; opacity: .9; }
+    .maze path { fill: none; stroke: #5e594e; stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .maze .dim { stroke: #403d35; }
+    .maze .blocked { stroke: #8a8271; stroke-width: 7; stroke-linecap: square; }
+    .maze .wall { fill: rgba(244,239,229,.035); stroke: #686256; stroke-width: 1.5; }
+    .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--ink) 5%, rgba(24,23,19,.91) 42%, rgba(24,23,19,.18) 75%, var(--ink) 100%); }
+    .hero-copy { max-width: 760px; position: relative; }
+    .hero .eyebrow { color: #a7a193; }
+    h1 { max-width: 720px; margin: 0; font: 300 clamp(3.8rem, 8vw, 7.1rem)/.88 var(--serif); letter-spacing: -.065em; }
+    h1 span { display: block; }
+    h1 .offset { margin-left: clamp(25px, 7vw, 105px); color: #b9b2a4; font-style: italic; }
+    h1 .answer { margin: .06em 0 0 clamp(8px, 2vw, 28px); color: var(--paper); }
+    .hero-lede { max-width: 490px; margin: 2rem 0 2.1rem clamp(8px, 2vw, 28px); color: rgba(244,239,229,.68); font-size: 1rem; line-height: 1.75; }
+    .hero-actions { margin-left: clamp(8px, 2vw, 28px); display: flex; align-items: center; gap: 1rem; }
+    .quiet-link { color: rgba(244,239,229,.7); font-size: .82rem; text-underline-offset: 4px; }
+    .dead-card { position: absolute; padding: 12px 16px; border: 1px solid #514d43; background: rgba(31,30,26,.9); color: #8d8779; font-size: .72rem; transform: rotate(var(--r)); box-shadow: 0 14px 40px rgba(0,0,0,.2); }
+    .dead-card b { display: block; color: #c5beaf; font-size: .78rem; margin-bottom: 4px; }
+    .dead-card::after { content: "DEAD END"; display: block; margin-top: 9px; color: #8f4933; font-size: .58rem; letter-spacing: .15em; }
+    .dc1 { top: 24%; right: 8%; --r: 3deg; }
+    .dc2 { top: 56%; right: 19%; --r: -4deg; }
+    .dc3 { bottom: 10%; right: 4%; --r: 2deg; }
+    .thread-start { position: absolute; left: 50%; bottom: -2px; width: 2px; height: 110px; background: var(--rust); box-shadow: 0 -25px 70px rgba(210,95,53,.5); }
+
+    .turn { position: relative; padding: 100px 0 130px; background: var(--ink-2); overflow: hidden; }
+    .turn::before { content: ""; position: absolute; left: calc(50% - 1px); top: 0; height: 70px; width: 2px; background: var(--rust); }
+    .turn-grid { display: grid; grid-template-columns: .72fr 1.28fr; gap: 9vw; align-items: end; }
+    .turn h2, .features-head h2, .exit h2 { margin: 0; font: 300 clamp(2.7rem, 5.5vw, 5rem)/1 var(--serif); letter-spacing: -.055em; }
+    .turn-copy p:last-child { max-width: 390px; margin: 1.6rem 0 0; color: rgba(244,239,229,.6); line-height: 1.7; }
+    .route-key { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); }
+    .route-key div { min-height: 160px; padding: 1.5rem; border-right: 1px solid var(--line-dark); }
+    .route-key div:last-child { border: 0; }
+    .route-key small { color: var(--rust); font-size: .66rem; letter-spacing: .14em; }
+    .route-key strong { display: block; margin-top: 3rem; font: 400 1.12rem/1.2 var(--serif); }
+
+    .features { position: relative; background: var(--paper); color: var(--ink); padding: 125px 0 150px; overflow: hidden; }
+    .route-thread { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .route-thread path { fill: none; stroke: var(--rust); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .route-thread circle { fill: var(--paper); stroke: var(--rust); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .features > .wrap { position: relative; z-index: 1; }
+    .features-head { display: grid; grid-template-columns: 1fr 1fr; gap: 7vw; align-items: end; margin-bottom: 95px; }
+    .features-head p { max-width: 430px; margin: 0 0 .5rem; color: #665f54; line-height: 1.75; }
+    .feature { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: center; min-height: 520px; padding: 55px 0; border-top: 1px solid var(--line-light); }
+    .feature:nth-child(even) .feature-copy { order: 2; }
+    .feature-num { display: block; margin-bottom: 1.1rem; color: var(--rust-dark); font: 500 .7rem/1 var(--sans); letter-spacing: .16em; }
+    .feature h3 { margin: 0; font: 400 clamp(2.1rem, 4vw, 3.7rem)/1.02 var(--serif); letter-spacing: -.045em; }
+    .feature-copy > p { max-width: 410px; margin: 1.2rem 0 0; color: #696155; line-height: 1.72; }
+    .visual { position: relative; min-height: 390px; border: 1px solid rgba(24,23,19,.18); background: var(--white); box-shadow: 0 22px 55px rgba(50,42,30,.12), 0 3px 10px rgba(50,42,30,.06); overflow: hidden; }
+    .visual-top { display: flex; justify-content: space-between; align-items: center; height: 52px; padding: 0 18px; border-bottom: 1px solid var(--line-light); font-size: .7rem; font-weight: 600; }
+    .visual-label { color: #8b8376; font-size: .62rem; letter-spacing: .13em; }
+    .list { padding: 12px 18px; }
+    .list-row { display: grid; grid-template-columns: 1.6fr .8fr .7fr; align-items: center; min-height: 61px; border-bottom: 1px solid rgba(24,23,19,.09); font-size: .72rem; }
+    .list-row b { display: block; font-size: .77rem; }
+    .list-row small { color: #8a8276; }
+    .status { justify-self: start; padding: 4px 8px; border: 1px solid #cabfac; color: #766e61; }
+    .status.live { border-color: #b46345; color: var(--rust-dark); }
+    .track-line { position: absolute; left: 12%; bottom: 0; width: 58%; height: 52px; border-top: 2px solid var(--rust); border-right: 2px solid var(--rust); }
+    .track-line::after { content: ""; position: absolute; right: -5px; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--rust); }
+
+    .rate-visual { display: grid; place-items: center; background: #201f1b; color: var(--paper); box-shadow: 0 22px 55px rgba(50,42,30,.18), 0 3px 10px rgba(50,42,30,.09); }
+    .rate-ring { position: relative; width: 230px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--rust) 0 25%, #423f37 25% 100%); }
+    .rate-ring::before { content: ""; position: absolute; width: 176px; aspect-ratio: 1; border-radius: 50%; background: #201f1b; }
+    .rate-inner { position: relative; text-align: center; }
+    .rate-inner b { display: block; font: 300 4.2rem/1 var(--serif); }
+    .rate-inner span { color: #a39d90; font-size: .65rem; letter-spacing: .13em; text-transform: uppercase; }
+    .rate-note { position: absolute; right: 18px; bottom: 18px; padding: .7rem .9rem; border-left: 2px solid var(--sage); background: #2c2a25; font-size: .68rem; }
+
+    .analysis { padding: 18px; }
+    .analysis-score { display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: 20px; background: #ede6da; }
+    .analysis-score small, .analysis-section small { color: #7a7267; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; }
+    .analysis-score strong { display: block; margin-top: .4rem; font: 400 1.25rem var(--serif); }
+    .score { color: var(--rust-dark); font: 400 2.6rem/1 var(--serif); }
+    .analysis-section { margin-top: 20px; }
+    .gap { display: flex; gap: .8rem; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line-light); font-size: .72rem; color: #625b51; }
+    .gap::before { content: ""; flex: 0 0 7px; height: 7px; margin-top: 4px; background: var(--rust); }
+    .gap.good::before { background: var(--sage); }
+
+    .resolution { position: relative; background: var(--paper-2); color: var(--ink); padding: 120px 0; overflow: hidden; }
+    .resolution::before, .resolution::after { content: ""; position: absolute; top: 0; height: 100%; width: 1px; background: rgba(24,23,19,.12); }
+    .resolution::before { left: 25%; } .resolution::after { right: 25%; }
+    .resolution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: center; }
+    .quote-mark { color: var(--rust); font: 300 5rem/.5 var(--serif); }
+    blockquote { margin: 1.5rem 0 0; font: 300 clamp(1.8rem, 3.3vw, 3rem)/1.25 var(--serif); letter-spacing: -.025em; }
+    cite { display: block; margin-top: 1.5rem; color: #6e665a; font-style: normal; font-size: .76rem; }
+    .clarity { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: rgba(24,23,19,.16); border: 1px solid rgba(24,23,19,.16); }
+    .clarity div { padding: 2rem; background: var(--paper-2); }
+    .clarity b { display: block; font: 400 2.4rem/1 var(--serif); }
+    .clarity span { display: block; margin-top: .6rem; color: #766e62; font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
+
+    .exit { position: relative; min-height: 780px; display: grid; place-items: center; background: var(--white); color: var(--ink); text-align: center; overflow: hidden; }
+    .exit::before { content: ""; position: absolute; top: 0; left: 50%; height: 110px; width: 2px; background: var(--rust); }
+    .exit-copy { position: relative; width: min(820px, calc(100% - 48px)); padding: 140px 0 110px; }
+    .exit .eyebrow { justify-content: center; color: var(--rust-dark); }
+    .exit h2 { font-size: clamp(3.6rem, 8vw, 7.4rem); }
+    .exit h2 em { display: block; color: var(--rust-dark); font-weight: 300; }
+    .exit p { max-width: 510px; margin: 1.7rem auto 2.1rem; color: #686055; line-height: 1.7; }
+    .exit-meta { margin-top: 1.1rem; color: #8a8174; font-size: .7rem; }
+    .exit-maze { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .exit-maze path { fill: none; stroke: rgba(24,23,19,.18); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .exit-maze .edge { stroke: rgba(24,23,19,.08); }
+    .exit-maze .route { stroke: var(--rust); }
+
+    footer { background: var(--white); color: var(--ink); border-top: 1px solid rgba(24,23,19,.14); }
+    .footer-inner { min-height: 105px; display: flex; justify-content: space-between; align-items: center; }
+    footer .brand img { filter: brightness(.42) sepia(1) saturate(2); }
+    footer small { color: #7e766b; }
+
+    [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    [data-reveal].visible { opacity: 1; transform: none; }
+
+    @media (max-width: 820px) {
+      .wrap { width: min(100% - 32px, 680px); }
+      .nav-inner { height: 68px; }
+      .nav-links > a:not(.button) { display: none; }
+      .hero { min-height: 800px; padding-top: 120px; align-items: start; }
+      .hero::after { background: linear-gradient(90deg, var(--ink), rgba(24,23,19,.76)); }
+      h1 { font-size: clamp(3.5rem, 17vw, 6.2rem); }
+      h1 .offset { margin-left: 0; }
+      .dead-card { opacity: .56; }
+      .dc1 { top: 59%; right: -2%; } .dc2 { top: 70%; left: 4%; right: auto; } .dc3 { display: none; }
+      .turn-grid, .features-head, .feature, .resolution-grid { grid-template-columns: 1fr; }
+      .turn-grid { gap: 3rem; }
+      .route-key div { padding: 1.1rem; min-height: 130px; }
+      .route-key strong { margin-top: 2rem; font-size: .92rem; }
+      .features { padding: 95px 0 110px; }
+      .features-head { gap: 1.5rem; margin-bottom: 55px; }
+      .feature { gap: 3rem; padding: 70px 0; }
+      .feature:nth-child(even) .feature-copy { order: 0; }
+      .visual { min-height: 360px; }
+      .route-thread { opacity: .72; }
+      .resolution { padding: 90px 0; }
+      .resolution-grid { gap: 4rem; }
+      .exit { min-height: 680px; }
+    }
+
+    @media (max-width: 500px) {
+      .nav .button { font-size: .72rem; padding-inline: .8rem; }
+      .brand { font-size: 1.05rem; }
+      .brand img { width: 27px; height: 27px; }
+      .hero { min-height: 760px; }
+      .dead-card { display: none; }
+      .dead-card.dc2 { display: block; top: auto; bottom: 5%; left: auto; right: -18px; max-width: 175px; opacity: .7; transform: rotate(-2deg); }
+      h1 { font-size: clamp(3rem, 15.2vw, 4.65rem); line-height: .92; }
+      .hero-lede, .hero-actions { margin-left: 0; }
+      .hero-actions { align-items: stretch; flex-direction: column; }
+      .quiet-link { text-align: center; }
+      .route-key { grid-template-columns: 1fr; }
+      .route-key div { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line-dark); }
+      .route-key strong { margin-top: 1rem; }
+      .list-row { grid-template-columns: 1.45fr .7fr; }
+      .list-row > :nth-child(2) { display: none; }
+      .rate-ring { width: 200px; }
+      .rate-ring::before { width: 152px; }
+      .clarity div { padding: 1.4rem; }
+      .clarity b { font-size: 2rem; }
+      .footer-inner { padding: 25px 0; gap: 1rem; align-items: flex-start; flex-direction: column; }
+      .route-thread { left: -32%; width: 164%; opacity: .55; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      [data-reveal] { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="nav" aria-label="Main navigation">
+    <div class="nav-inner wrap">
+      <a class="brand" href="#top" aria-label="Driftrai home"><img src="fox_logo_transparent_cream.svg" alt="">Driftrai</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a class="button button-primary" href="https://app.driftrai.com" data-cta="nav">Find your path <span aria-hidden="true">→</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <svg class="maze" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <path d="M-20 95H245v92H95v176h198v-83h180v224H332v143H85v125h314v88M0 281h56V151h118M0 484h181v-78h63M0 690h255v-99h-91M399 900V781h154V658h-76"/>
+        <path class="dim" d="M190 0v96M325 0v130h129v99h165V83h130v179H575v159h91v146H526M0 574h111v-73M270 96h-39M394 229v-61M480 0v72h82M78 900V827h142M620 900V760h92V634"/>
+        <path d="M750-10v135h163v97h-81v160h164v-79h183v168h-91v154H914v94h222v181M711 0v73h-69M750 291h-83v111h99M802 541H681v96h144M846 900V781h-87"/>
+        <path class="dim" d="M1040 0v107h188v116h-96M1440 139h-126v238h126M1440 527h-191v201h-113M1318 900V764h122M947 0v62h-91M1228 107v-45h105M1228 292h-98M1282 471v97h-74M996 625v-82M1136 808h91v-64"/>
+        <path class="wall" d="M522 294h90v62h-90zM1200 390h92v61h-92zM244 701h78v58h-78z"/>
+        <path class="blocked" d="M265 175v34M461 488h40M815 367h38M1178 453v38M1071 704h38M164 577h35M667 115h35M1265 219v35M748 622h36"/>
+      </svg>
+      <div class="wrap hero-copy">
+        <p class="eyebrow">The job search is a maze</p>
+        <h1 id="hero-title"><span>Too many paths.</span><span class="offset">Not enough</span><span class="answer">answers.</span></h1>
+        <p class="hero-lede">Applications disappear. Spreadsheets multiply. Advice contradicts itself. Driftrai turns the noise into a route you can actually follow.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://app.driftrai.com" data-cta="hero">Find your path <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="quiet-link" href="#how">See how it works</a>
+        </div>
+      </div>
+      <div class="dead-card dc1" aria-hidden="true"><b>Product Lead</b>Applied · 19 days ago</div>
+      <div class="dead-card dc2" aria-hidden="true"><b>Senior PM</b>No response · 12 days</div>
+      <div class="dead-card dc3" aria-hidden="true"><b>Resume_final_v7.pdf</b>Performance unknown</div>
+      <div class="thread-start" aria-hidden="true"></div>
+    </section>
+
+    <section class="turn" id="how" aria-labelledby="turn-title">
+      <div class="wrap turn-grid" data-reveal>
+        <div class="turn-copy">
+          <p class="eyebrow rust">Here’s the thread</p>
+          <h2 id="turn-title">Stop guessing.<br>Start reading<br>the signals.</h2>
+          <p>Driftrai connects what you sent, what happened next, and what your resume is really communicating—so every next move has a reason.</p>
+        </div>
+        <div class="route-key" aria-label="Your path with Driftrai">
+          <div><small>01 / MARK</small><strong>Log every<br>application</strong></div>
+          <div><small>02 / MEASURE</small><strong>See what gets<br>a response</strong></div>
+          <div><small>03 / ADJUST</small><strong>Fix what holds<br>you back</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-labelledby="features-title">
+      <svg class="route-thread" viewBox="0 0 1440 1960" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M720 0V150H1045V445H1190V610H720V790H320V1035H215V1190H720V1370H1055V1605H720V1960"/>
+        <circle cx="1045" cy="445" r="7"/><circle cx="320" cy="1035" r="7"/><circle cx="1055" cy="1605" r="7"/>
+      </svg>
+      <div class="wrap">
+        <div class="features-head" data-reveal>
+          <div>
+            <p class="eyebrow rust">One clear route</p>
+            <h2 id="features-title">Your search,<br>mapped.</h2>
+          </div>
+          <p>No more reconstructing your week from browser tabs and inbox threads. See the whole search, spot the turns that work, and change course with confidence.</p>
+        </div>
+
+        <article class="feature" data-reveal>
+          <div class="feature-copy">
+            <span class="feature-num">01 — APPLICATION TRACKING</span>
+            <h3>Nothing slips<br>through a crack.</h3>
+            <p>Keep roles, companies, dates, links, notes, and status in one calm view. Follow up at the right moment instead of wondering what you forgot.</p>
+          </div>
+          <div class="visual" aria-label="Example application tracker">
+            <div class="visual-top"><span>APPLICATIONS / ACTIVE</span><span class="visual-label">4 OPEN</span></div>
+            <div class="list">
+              <div class="list-row"><div><b>Product Operations Lead</b><small>Northstar Labs</small></div><small>Today</small><span class="status live">Interview</span></div>
+              <div class="list-row"><div><b>Senior Product Manager</b><small>Fieldwork</small></div><small>Sep 04</small><span class="status">Applied</span></div>
+              <div class="list-row"><div><b>Product Strategy Lead</b><small>Common Ground</small></div><small>Aug 29</small><span class="status">Follow up</span></div>
+              <div class="list-row"><div><b>Platform Product Manager</b><small>Arc Systems</small></div><small>Aug 26</small><span class="status">Applied</span></div>
+            </div>
+            <div class="track-line" aria-hidden="true"></div>
+          </div>
+        </article>
+
+        <article class="feature" data-reveal>
+          <div class="feature-copy">
+            <span class="feature-num">02 — RESPONSE RATE</span>
+            <h3>Know which turns<br>lead somewhere.</h3>
+            <p>Measure your real response rate across roles and resume versions. Keep what earns attention. Leave the dead ends behind.</p>
+          </div>
+          <div class="visual rate-visual" aria-label="Example response rate dashboard showing 25 percent">
+            <div class="visual-top" style="position:absolute;inset:0 0 auto"><span>RESPONSE RATE / 30 DAYS</span><span class="visual-label">UPDATED TODAY</span></div>
+            <div class="rate-ring"><div class="rate-inner"><b>25%</b><span>response rate</span></div></div>
+            <div class="rate-note">↑ Resume B is leading by 12%</div>
+          </div>
+        </article>
+
+        <article class="feature" data-reveal>
+          <div class="feature-copy">
+            <span class="feature-num">03 — AI RESUME ANALYSIS</span>
+            <h3>See the gap.<br>Then close it.</h3>
+            <p>Understand the role and seniority your resume signals, the strengths recruiters will notice, and the specific gaps keeping you from the next level.</p>
+          </div>
+          <div class="visual analysis" aria-label="Example AI resume analysis">
+            <div class="analysis-score"><div><small>Best-fit signal</small><strong>Senior Product Operations</strong></div><div class="score">90%</div></div>
+            <div class="analysis-section"><small>What reads clearly</small><div class="gap good">Product operations leadership and applied AI experience</div><div class="gap good">Measurable impact tied to revenue and efficiency</div></div>
+            <div class="analysis-section"><small>Gap to close</small><div class="gap">Show broader strategic influence across functions</div><div class="gap">Add evidence of executive stakeholder management</div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="resolution" aria-label="The result">
+      <div class="wrap resolution-grid" data-reveal>
+        <div>
+          <div class="quote-mark" aria-hidden="true">“</div>
+          <blockquote>The goal isn’t to apply everywhere. It’s to know where you’re going—and why.</blockquote>
+          <cite>From scattered activity to a search you can steer.</cite>
+        </div>
+        <div class="clarity" aria-label="What clarity looks like">
+          <div><b>1</b><span>place for every application</span></div>
+          <div><b>Live</b><span>response-rate signal</span></div>
+          <div><b>Clear</b><span>resume strengths</span></div>
+          <div><b>Exact</b><span>gaps to address</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="exit" aria-labelledby="exit-title">
+      <svg class="exit-maze" viewBox="0 0 1440 780" preserveAspectRatio="none" aria-hidden="true">
+        <path class="route" d="M720 0v96"/>
+        <path d="M0 92h330v108h190v92H250v105H0M0 530h355v-94h160M0 684h440v-92h115"/>
+        <path d="M1440 92h-330v108H920v92h270v105h250M1440 530h-355v-94H925M1440 684h-440v-92H885"/>
+        <path class="edge" d="M0 255h160v-70M0 758h300v-65M1440 255h-160v-70M1440 758h-300v-65"/>
+      </svg>
+      <div class="exit-copy" data-reveal>
+        <p class="eyebrow">You found the exit</p>
+        <h2 id="exit-title">Your next move,<br><em>clear.</em></h2>
+        <p>Track the search. Read the signals. Build the resume that gets you through the door.</p>
+        <a class="button button-dark" href="https://app.driftrai.com" data-cta="exit">Start with Driftrai <span class="arrow" aria-hidden="true">→</span></a>
+        <div class="exit-meta">Free to start · No credit card required</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner wrap">
+      <a class="brand" href="#top"><img src="fox_logo_transparent_cream.svg" alt="">Driftrai</a>
+      <small>© 2026 Driftrai. Find the signal. Follow it out.</small>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reveals = document.querySelectorAll('[data-reveal]');
+      if (reduced || !('IntersectionObserver' in window)) {
+        reveals.forEach(el => el.classList.add('visible'));
+      } else {
+        const observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+        reveals.forEach(el => observer.observe(el));
+      }
+    })();
+  </script>
+</body>
+</html>
